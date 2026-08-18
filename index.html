@@ -1,0 +1,1306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Lap Counter">
+<title>Lap Counter</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<style>
+  :root{
+    --bg:#000000;
+    --panel:#000000;
+    --text:#ffffff;
+    --shadow:0 12px 30px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  button{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+  body{
+    margin:0;
+    min-height:100dvh;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{
+    position:relative;
+    width:min(680px,100%);
+    margin:auto;
+    padding:14px 14px max(14px,env(safe-area-inset-bottom));
+  }
+  h1{
+    margin:1px 0 16px;
+    padding-right:72px;
+    font-size:40px;
+    letter-spacing:-.03em;
+    text-shadow:0 1px 0 #000;
+  }
+  .setup-btn{
+    position:absolute;
+    top:14px;
+    right:14px;
+    z-index:2;
+    border:3px solid #ffffff;
+    border-radius:14px;
+    width:60px;
+    height:60px;
+    padding:0;
+    display:grid;
+    place-items:center;
+    
+    background:#000000;
+    color:#ffffff;
+  }
+  .setup-btn svg{
+    width:80%;
+    height:80%;
+    display:block;
+  }
+  #phases{
+    margin-top:48px;
+  }
+  .phase{
+    background:var(--panel);
+    border:3px solid #ffffff;
+    border-radius:18px;
+    padding:14px;
+    margin:28px 0;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .phase.inactive{opacity:.62}
+  .phase.finished{opacity:.78}
+  .phase.active{
+    background:#ffffff;
+    color:#000000;
+    border-color:#ffffff;
+  }
+  .phase.active .phase-title,
+  .phase.active .counter,
+  .phase.active .clock{
+    color:#000000;
+    text-shadow:none;
+  }
+  .phase.active .lap{
+    background:#000000;
+    border-color:#000000;
+    color:#ffffff;
+  }
+  .phase.active .lap.done{
+    background:#00e676;
+    border-color:#000000;
+    color:#000000;
+  }
+  .phase.active .lap.done:not(.timed)::after{
+    background-color:#00e676;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5 12.5 10.2 18 19 6' stroke='%23000' stroke-width='2.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  .phase.active .big:not(:disabled){
+    background:#00e676;
+    color:#000000;
+    border-color:#000000;
+  }
+  .phase-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .phase.collapsed .phase-head{
+    margin-bottom:0;
+  }
+  .phase-toggle{
+    flex:0 0 auto;
+    width:64px;
+    height:64px;
+    padding:0;
+    display:grid;
+    place-items:center;
+    border:3px solid #ffffff;
+    border-radius:16px;
+    background:#000000;
+    color:#ffffff;
+  }
+  .phase-toggle svg{
+    width:72%;
+    height:72%;
+    display:block;
+    transition:transform .15s ease;
+  }
+  .phase:not(.collapsed) .phase-toggle svg{
+    transform:rotate(180deg);
+  }
+  .phase.active .phase-toggle{
+    border-color:#000000;
+    background:#ffffff;
+    color:#000000;
+  }
+  .phase.collapsed .laps,
+  .phase.collapsed .big{
+    display:none;
+  }
+  .phase-title{
+    display:flex;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:0 .35em;
+    min-width:0;
+    flex:0 1 auto;
+    font-weight:850;
+    font-size:28px;
+    line-height:1.25;
+    text-shadow:0 1px 0 #000;
+  }
+  .phase-meta{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:1.2em;
+    flex:1;
+    min-width:0;
+  }
+  .counter, .clock{
+    font-size:clamp(24px,6.5vw,32px);
+    font-weight:800;
+    color:#ffffff;
+    white-space:nowrap;
+    text-shadow:0 1px 0 #000;
+  }
+  .clock{
+    font-variant-numeric:tabular-nums;
+    min-width:7ch;
+    text-align:right;
+  }
+  .laps{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin:8px 0 10px;
+  }
+  .lap{
+    aspect-ratio:1/1;
+    border-radius:13px;
+    display:grid;
+    place-items:center;
+    background:#000000;
+    border:3px solid #ffffff;
+    font-weight:600;
+    color:#ffffff;
+    transition:.15s ease;
+    container-type:size;
+  }
+  .lap-num{
+    font-size:80cqh;
+    line-height:1;
+  }
+  .lap-time{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:34cqh;
+    font-weight:900;
+    line-height:1;
+    letter-spacing:-.04em;
+    text-align:center;
+    padding:0 2%;
+    font-variant-numeric:tabular-nums;
+  }
+  .lap-time-frac{
+    display:block;
+    font-size:.72em;
+    line-height:1;
+    margin-top:.04em;
+  }
+  .lap.done{
+    background:#ffffff;
+    color:#000000;
+    border-color:#ffffff;
+    position:relative;
+  }
+  .lap.done:not(.timed)::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:11px;
+    background-color:#ffffff;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5 12.5 10.2 18 19 6' stroke='%23000' stroke-width='2.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:center;
+    background-size:85% 85%;
+  }
+  .lap.done.timed .lap-num{display:none}
+  .lap.done.timed .lap-time{display:flex}
+  .big{
+    width:100%;
+    border:4px solid #ffffff;
+    border-radius:17px;
+    min-height:76px;
+    background:var(--phase-color,#ffea00);
+    color:#000000;
+    font-size:clamp(21px,5.8vw,29px);
+    font-weight:1000;
+    cursor:pointer;
+    box-shadow:0 8px 18px rgba(0,0,0,.2);
+    text-shadow:0 1px 0 #000;
+  }
+  .big:active{transform:scale(.985)}
+  .big:disabled{
+    background:#222222;
+    color:#ffffff;
+    cursor:default;
+    transform:none;
+  }
+  .phase.finished .big:disabled{
+    background:#00e676;
+    color:#000000;
+    margin:18px 0 8px;
+    padding:18px 10px;
+  }
+  .controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin:28px 0;
+  }
+  .small{
+    border:3px solid #ffffff;
+    border-radius:12px;
+    padding:13px 8px;
+    min-height:54px;
+    background:#000000;
+    color:#ffffff;
+    font-size:21px;
+    font-weight:800;
+    text-shadow:0 1px 0 #000;
+  }
+  .small.reset{
+    color:#ffd2d2;
+    font-weight:1000;
+  }
+  .shot{
+    display:none;
+    width:100%;
+    border:4px solid #ffffff;
+    border-radius:17px;
+    min-height:76px;
+    margin:28px 0 0;
+    background:#00e676;
+    color:#000000;
+    font-size:clamp(21px,5.8vw,29px);
+    font-weight:1000;
+  }
+  .shot.show{display:block}
+  .block-msg{
+    display:none;
+    margin:18px 0 0;
+    padding:16px 14px;
+    border:4px solid #ffffff;
+    border-radius:16px;
+    background:#ffffff;
+    color:#000000;
+    font-size:clamp(20px,5.6vw,26px);
+    font-weight:900;
+    line-height:1.3;
+    text-align:center;
+  }
+  .block-msg.show{display:block}
+  .hint{display:none}
+  body.capturing .setup-btn,
+  body.capturing .controls,
+  body.capturing .shot,
+  body.capturing .block-msg,
+  body.capturing .install-hint,
+  body.capturing .confetti{
+    display:none !important;
+  }
+  .confetti{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:9999;
+  }
+  .modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    background:rgba(0,0,0,.78);
+  }
+  .modal.show{display:flex}
+  .modal-panel{
+    width:min(560px,100%);
+    background:#000000;
+    border:4px solid #ffffff;
+    border-radius:22px;
+    padding:32px 22px;
+    text-align:center;
+  }
+  .modal-panel.setup{
+    max-height:min(92dvh,900px);
+    overflow:auto;
+    text-align:left;
+    padding:22px 16px 18px;
+  }
+  .modal-title{
+    margin:0 0 14px;
+    font-size:42px;
+    font-weight:1000;
+    letter-spacing:-.03em;
+    line-height:1.1;
+    text-align:center;
+  }
+  .modal-panel.setup .modal-title{
+    font-size:34px;
+    margin-bottom:16px;
+  }
+  .modal-text{
+    margin:0 0 28px;
+    font-size:26px;
+    line-height:1.35;
+    text-align:center;
+  }
+  .modal-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .modal-actions.row{
+    grid-template-columns:1fr 1fr;
+  }
+  .modal-actions .small{
+    min-height:76px;
+    font-size:28px;
+    font-weight:1000;
+    border-radius:16px;
+  }
+  .modal-actions .confirm-reset,
+  .modal-actions .confirm-save{
+    background:#ff6b6b;
+    color:#000000;
+    border-color:#ffffff;
+  }
+  .modal-actions .confirm-save{
+    background:#00e676;
+  }
+  .field{
+    margin-bottom:14px;
+  }
+  .field label{
+    display:block;
+    margin-bottom:6px;
+    font-size:16px;
+    font-weight:800;
+  }
+  .field input{
+    width:100%;
+    min-height:56px;
+    border:3px solid #ffffff;
+    border-radius:12px;
+    background:#000000;
+    color:#ffffff;
+    font-size:22px;
+    font-weight:800;
+    padding:10px 12px;
+  }
+  .phase-editor{
+    border:3px solid #ffffff;
+    border-radius:16px;
+    padding:12px;
+    margin-bottom:12px;
+    background:#0a0a0a;
+  }
+  .phase-editor-row{
+    display:grid;
+    grid-template-columns:1.4fr 0.8fr auto;
+    gap:8px;
+    align-items:end;
+  }
+  .phase-editor .remove-phase{
+    min-height:56px;
+    min-width:56px;
+    padding:0 12px;
+    font-size:22px;
+    color:#ffd2d2;
+  }
+  .phase-editor input{
+    width:100%;
+    min-height:56px;
+    border:3px solid #ffffff;
+    border-radius:12px;
+    background:#000000;
+    color:#ffffff;
+    font-size:20px;
+    font-weight:800;
+    padding:10px 12px;
+  }
+  select{
+    width:100%;
+    min-height:56px;
+    border:3px solid #ffffff;
+    border-radius:12px;
+    color:#ffffff;
+    font-size:22px;
+    font-weight:800;
+    padding:10px 56px 10px 12px;
+    appearance:none;
+    -webkit-appearance:none;
+    background-color:#000000;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M4 8l8 10 8-10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+    background-size:32px 32px;
+  }
+  .add-phase{
+    width:100%;
+    min-height:58px;
+    margin:4px 0 16px;
+    border:3px dashed #ffffff;
+    border-radius:14px;
+    background:transparent;
+    color:#ffffff;
+    font-size:20px;
+    font-weight:900;
+  }
+  .setup-note{
+    margin:0 0 14px;
+    font-size:15px;
+    line-height:1.35;
+    opacity:.85;
+    text-align:center;
+  }
+  .install-hint{
+    display:none;
+    align-items:center;
+    gap:12px;
+    margin:8px 0 0;
+    padding:12px;
+    border:3px solid #ffffff;
+    border-radius:16px;
+    background:#000000;
+    color:#ffffff;
+  }
+  .install-hint.show{display:flex}
+  .install-hint-copy{
+    flex:1;
+    min-width:0;
+  }
+  .install-hint-copy strong{
+    display:block;
+    font-size:22px;
+    font-weight:900;
+  }
+  .install-hint-copy span{
+    display:block;
+    margin-top:4px;
+    font-size:20px;
+    font-weight:800;
+  }
+  .install-hint-dismiss{
+    flex:0 0 auto;
+    width:60px;
+    height:60px;
+    padding:0;
+    border:3px solid #ffffff;
+    border-radius:14px;
+    background:#000000;
+    color:#ffffff;
+    font-size:28px;
+    font-weight:900;
+  }
+
+  @media (max-height:740px){
+    .wrap{padding:9px 12px max(9px,env(safe-area-inset-bottom))}
+    .setup-btn{top:9px;right:12px}
+    h1{font-size:34px}
+    .phase{padding:11px;margin:22px 0}
+    .phase-head{margin-bottom:12px}
+    .phase-title{font-size:25px}
+    .counter, .clock{font-size:26px}
+    .laps{margin:5px 0 7px;gap:10px}
+    .big{min-height:64px;font-size:21px}
+    .controls{margin:22px 0}
+    .small{padding:10px 6px;font-size:19px}
+    .block-msg{margin:14px 0 0;padding:12px;font-size:19px}
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <button class="setup-btn" id="setupBtn" type="button" aria-label="Event setup">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567l-.144.866a8.1 8.1 0 0 0-1.335.775l-.82-.36c-.85-.372-1.845-.05-2.35.76l-.922 1.48c-.505.81-.28 1.877.518 2.495l.72.56a8.2 8.2 0 0 0-.05 1.545l-.72.56c-.798.618-1.023 1.685-.518 2.495l.922 1.48c.505.81 1.5 1.132 2.35.76l.82-.36c.41.32.86.58 1.335.775l.144.866c.151.904.933 1.567 1.85 1.567h1.844c.917 0 1.699-.663 1.85-1.567l.144-.866a8.1 8.1 0 0 0 1.335-.775l.82.36c.85.372 1.845.05 2.35-.76l.922-1.48c.505-.81.28-1.877-.518-2.495l-.72-.56a8.2 8.2 0 0 0 .05-1.545l.72-.56c.798-.618 1.023-1.685.518-2.495l-.922-1.48c-.505-.81-1.5-1.132-2.35-.76l-.82.36a8.1 8.1 0 0 0-1.335-.775l-.144-.866c-.151-.904-.933-1.567-1.85-1.567h-1.844ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/>
+    </svg>
+  </button>
+  <h1>Lap Counter</h1>
+  <div class="install-hint" id="installHint">
+    <div class="install-hint-copy">
+      <strong>Add to Home Screen</strong>
+      <span>Tap Share, then Add to Home Screen.</span>
+    </div>
+    <button class="install-hint-dismiss" id="installHintDismiss" type="button" aria-label="Dismiss">✕</button>
+  </div>
+  <p class="block-msg" id="blockMsg"></p>
+  <div id="phases"></div>
+  <button class="shot" id="shotBtn" type="button">Save screenshot</button>
+  <div class="controls">
+    <button class="small" id="undoBtn" type="button">Undo last tap</button>
+    <button class="small reset" id="resetBtn" type="button">Reset</button>
+  </div>
+  <div class="hint">Counts are saved on this phone if the page is accidentally closed or refreshed.</div>
+</main>
+
+<canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+
+<div class="modal" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+  <div class="modal-panel">
+    <h2 class="modal-title" id="resetModalTitle">Reset Laps?</h2>
+    <p class="modal-text">This will clear all lap progress for this event.</p>
+    <div class="modal-actions">
+      <button class="small" id="resetCancelBtn" type="button">Cancel</button>
+      <button class="small confirm-reset" id="resetConfirmBtn" type="button">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="setupModal" role="dialog" aria-modal="true" aria-labelledby="setupModalTitle">
+  <div class="modal-panel setup">
+    <h2 class="modal-title" id="setupModalTitle">Event setup</h2>
+    <div class="field">
+      <label for="timePrecision">Time precision</label>
+      <select id="timePrecision">
+        <option value="seconds">Seconds</option>
+        <option value="tenths">Tenths of a second</option>
+        <option value="hundredths">Hundredths of a second</option>
+      </select>
+    </div>
+    <div id="phaseEditors"></div>
+    <button class="add-phase" id="addPhaseBtn" type="button">+ Add discipline</button>
+    <p class="setup-note">Saving applies the new event and clears current lap counts.</p>
+    <div class="modal-actions row">
+      <button class="small" id="setupCancelBtn" type="button">Cancel</button>
+      <button class="small confirm-save" id="setupSaveBtn" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "lapCounterApp";
+  const INSTALL_HINT_KEY = "lapCounterInstallHintDismissed";
+  const DISCIPLINES = {
+    swim: { label: "Swim", color: "#00a2ff" },
+    bike: { label: "Bike", color: "#ffea00" },
+    run: { label: "Run", color: "#00e676" }
+  };
+  const DEFAULT_CONFIG = {
+    name: "Custom event",
+    precision: "seconds",
+    phases: [
+      { id: "bike", type: "bike", laps: 6 },
+      { id: "run", type: "run", laps: 4 }
+    ]
+  };
+
+  const $ = id => document.getElementById(id);
+  const phasesEl = $("phases");
+  const canvas = $("confetti");
+  const ctx = canvas.getContext("2d");
+
+  function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+  function uid(){
+    return "p" + Math.random().toString(36).slice(2, 8);
+  }
+
+  function resolveType(phase){
+    if(DISCIPLINES[phase.type]) return phase.type;
+    const hint = `${phase.label || ""} ${phase.id || ""}`.toLowerCase();
+    if(hint.includes("swim")) return "swim";
+    if(hint.includes("run")) return "run";
+    return "bike";
+  }
+
+  function normalizePhase(phase){
+    const type = resolveType(phase);
+    return {
+      id: phase.id || uid(),
+      type,
+      laps: Math.max(1, Math.min(40, parseInt(phase.laps, 10) || 1))
+    };
+  }
+
+  function normalizePrecision(value){
+    if(value === "tenths" || value === "hundredths") return value;
+    return "seconds";
+  }
+
+  function normalizeConfig(config){
+    return {
+      name: (config?.name || "Event").trim(),
+      precision: normalizePrecision(config?.precision),
+      phases: (config?.phases || []).map(normalizePhase)
+    };
+  }
+
+  function unitMs(){
+    if(app.config.precision === "hundredths") return 10;
+    if(app.config.precision === "tenths") return 100;
+    return 1000;
+  }
+
+  function toUnits(ms){
+    return Math.max(0, Math.floor(ms / unitMs()));
+  }
+
+  function formatUnits(units){
+    const u = Math.max(0, units);
+    const precision = app.config.precision || "seconds";
+    let totalSec, frac = "";
+    if(precision === "hundredths"){
+      totalSec = Math.floor(u / 100);
+      frac = `.${String(u % 100).padStart(2, "0")}`;
+    } else if(precision === "tenths"){
+      totalSec = Math.floor(u / 10);
+      frac = `.${u % 10}`;
+    } else {
+      totalSec = u;
+    }
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    const core = h > 0
+      ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`
+      : `${m}:${String(s).padStart(2,"0")}`;
+    return core + frac;
+  }
+
+  function formatTime(ms){
+    return formatUnits(toUnits(ms));
+  }
+
+  function phaseMeta(phase){
+    return DISCIPLINES[phase.type] || DISCIPLINES.bike;
+  }
+
+  function emptyState(config){
+    const counts = {};
+    const times = {};
+    const startedAt = {};
+    config.phases.forEach(p => {
+      counts[p.id] = 0;
+      times[p.id] = [];
+    });
+    return { counts, times, startedAt, history: [] };
+  }
+
+  function normalizeState(config, state){
+    const base = emptyState(config);
+    if(!state) return base;
+    config.phases.forEach(p => {
+      base.counts[p.id] = Math.max(0, state.counts?.[p.id] || 0);
+      base.times[p.id] = Array.isArray(state.times?.[p.id]) ? state.times[p.id] : [];
+      if(state.startedAt?.[p.id]) base.startedAt[p.id] = state.startedAt[p.id];
+    });
+    base.history = Array.isArray(state.history) ? state.history.map(item => {
+      if(typeof item === "string") return { kind: "lap", id: item };
+      return item;
+    }) : [];
+    return base;
+  }
+
+  function loadApp(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      try{
+        const parsed = JSON.parse(raw);
+        if(parsed?.config?.phases?.length){
+          parsed.config = normalizeConfig(parsed.config);
+          parsed.state = normalizeState(parsed.config, parsed.state);
+          return parsed;
+        }
+      }catch{}
+    }
+
+    const legacy = localStorage.getItem("duathlonLapCounter");
+    const config = clone(DEFAULT_CONFIG);
+    if(legacy){
+      try{
+        const old = JSON.parse(legacy);
+        return {
+the           config,
+          state: normalizeState(config, {
+            counts: { bike: old.bike || 0, run: old.run || 0 },
+            history: Array.isArray(old.history) ? old.history : []
+          })
+        };
+      }catch{}
+    }
+
+    return { config, state: emptyState(config) };
+  }
+
+  const TAP_COOLDOWN_MS = 800;
+
+  let app = loadApp();
+  let draft = null;
+  let lastActiveId;
+  let lastTapAt = 0;
+  const forcedOpen = new Set();
+  const forcedClosed = new Set();
+  const finishedIds = new Set(
+    app.config.phases.filter(p => (app.state.counts[p.id] || 0) >= p.laps).map(p => p.id)
+  );
+  let noticeDismissed = false;
+
+  function save(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(app));
+  }
+
+  function isComplete(){
+    return app.config.phases.every(p => (app.state.counts[p.id] || 0) >= p.laps);
+  }
+
+  function completionNotice(){
+    const phases = app.config.phases;
+    for(let i = 0; i < phases.length; i++){
+      const phase = phases[i];
+      if((app.state.counts[phase.id] || 0) < phase.laps) continue;
+      const doneLabel = phaseMeta(phase).label;
+      const next = phases[i + 1];
+      if(next && !isStarted(next.id)){
+        const nextLabel = phaseMeta(next).label;
+        return {
+          text: `${doneLabel} laps are completed! Press Start on the ${nextLabel} to start timing ${nextLabel} laps`,
+          beforeId: next.id
+        };
+      }
+      if(!next){
+        if(noticeDismissed) return null;
+        return { text: `${doneLabel} laps are completed!`, beforeId: null };
+      }
+    }
+    return null;
+  }
+
+  function resizeCanvas(){
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  function celebrate(){
+    const colors = ["#ffea00", "#00e676", "#00a2ff", "#ff6b6b", "#ffffff", "#ff9f1c"];
+    const pieces = Array.from({length:140}, () => {
+      const angle = (Math.random() * 0.9 + 0.05) * Math.PI;
+      const speed = 8 + Math.random() * 14;
+      return {
+        x: window.innerWidth * (0.25 + Math.random() * 0.5),
+        y: window.innerHeight * 0.55,
+        vx: Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random()),
+        vy: -Math.sin(angle) * speed - 4,
+        w: 6 + Math.random() * 8,
+        h: 8 + Math.random() * 12,
+        rot: Math.random() * Math.PI,
+        vr: (Math.random() - 0.5) * 0.35,
+        color: colors[(Math.random() * colors.length) | 0],
+        life: 1
+      };
+    });
+
+    const start = performance.now();
+    const duration = 2200;
+
+    function frame(now){
+      const t = (now - start) / duration;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      if(t >= 1){
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        return;
+      }
+      pieces.forEach(p => {
+        p.vy += 0.28;
+        p.vx *= 0.99;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        p.life = 1 - t;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function buildPhases(){
+    const msgEl = $("blockMsg");
+    if(msgEl && phasesEl.contains(msgEl)) phasesEl.before(msgEl);
+    phasesEl.innerHTML = "";
+    app.config.phases.forEach(phase => {
+      const meta = phaseMeta(phase);
+      const section = document.createElement("section");
+      section.className = "phase";
+      section.dataset.id = phase.id;
+      section.style.setProperty("--phase-color", meta.color);
+
+      section.innerHTML = `
+        <div class="phase-head">
+          <button class="phase-toggle" data-role="toggle" type="button" aria-label="Expand">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" d="M5 9l7 8 7-8"/>
+            </svg>
+          </button>
+          <div class="phase-title">
+            <span>${meta.label}</span>
+          </div>
+          <div class="phase-meta">
+            <div class="counter" data-role="counter">0 / ${phase.laps}</div>
+            <div class="clock" data-role="clock">0:00</div>
+          </div>
+        </div>
+        <div class="laps" data-role="laps"></div>
+        <button class="big" data-role="btn" type="button">Start ${meta.label}</button>
+      `;
+
+      const laps = section.querySelector('[data-role="laps"]');
+      for(let i = 1; i <= phase.laps; i++){
+        laps.insertAdjacentHTML("beforeend", `<div class="lap" data-i="${i}"><span class="lap-num">${i}</span><span class="lap-time"></span></div>`);
+      }
+
+      section.querySelector('[data-role="btn"]').addEventListener("click", () => onPhaseButton(phase.id));
+      section.querySelector('[data-role="toggle"]').addEventListener("click", e => {
+        e.stopPropagation();
+        togglePhase(phase.id);
+      });
+      phasesEl.appendChild(section);
+    });
+  }
+
+  function activePhaseId(){
+    for(const phase of app.config.phases){
+      if((app.state.counts[phase.id] || 0) < phase.laps) return phase.id;
+    }
+    return null;
+  }
+
+  function isStarted(id){
+    return Boolean(app.state.startedAt?.[id]);
+  }
+
+  function startPhase(id){
+    const phase = app.config.phases.find(p => p.id === id);
+    if(!phase) return;
+    if(activePhaseId() !== id) return;
+    if(isStarted(id)) return;
+
+    app.state.startedAt[id] = Date.now();
+    app.state.history.push({ kind: "start", id });
+    if(navigator.vibrate) navigator.vibrate(40);
+    render();
+  }
+
+  function tapPhase(id){
+    const phase = app.config.phases.find(p => p.id === id);
+    if(!phase) return;
+    if(activePhaseId() !== id) return;
+    if(!isStarted(id)) return;
+    if((app.state.counts[id] || 0) >= phase.laps) return;
+
+    if(!app.state.times[id]) app.state.times[id] = [];
+    const elapsed = toUnits(Date.now() - app.state.startedAt[id]);
+    const prev = app.state.times[id].reduce((sum, ms) => sum + toUnits(ms), 0);
+    app.state.counts[id] = (app.state.counts[id] || 0) + 1;
+    app.state.times[id].push(Math.max(0, elapsed - prev) * unitMs());
+    app.state.history.push({ kind: "lap", id });
+    if(navigator.vibrate) navigator.vibrate(40);
+    render();
+  }
+
+  function onPhaseButton(id){
+    const now = Date.now();
+    if(now - lastTapAt < TAP_COOLDOWN_MS) return;
+    lastTapAt = now;
+    if(!isStarted(id)) startPhase(id);
+    else tapPhase(id);
+  }
+
+  function phaseElapsed(phase){
+    const times = app.state.times[phase.id] || [];
+    const done = (app.state.counts[phase.id] || 0) >= phase.laps;
+    if(done) return times.reduce((sum, ms) => sum + toUnits(ms), 0) * unitMs();
+    if(!app.state.startedAt?.[phase.id]) return 0;
+    return Math.max(0, Date.now() - app.state.startedAt[phase.id]);
+  }
+
+  function updateClocks(){
+    app.config.phases.forEach(phase => {
+      const clock = phasesEl.querySelector(`[data-id="${phase.id}"] [data-role="clock"]`);
+      if(clock) clock.textContent = formatTime(phaseElapsed(phase));
+    });
+  }
+
+  function togglePhase(id){
+    const section = phasesEl.querySelector(`[data-id="${id}"]`);
+    const isOpen = section && !section.classList.contains("collapsed");
+    if(isOpen){
+      forcedOpen.delete(id);
+      forcedClosed.add(id);
+    } else {
+      forcedClosed.delete(id);
+      forcedOpen.add(id);
+    }
+    render();
+  }
+
+  function clearForced(){
+    forcedOpen.clear();
+    forcedClosed.clear();
+    lastActiveId = undefined;
+  }
+
+  let wakeLock = null;
+
+  function raceUnderway(){
+    if(!activePhaseId()) return false;
+    return app.config.phases.some(phase => app.state.startedAt?.[phase.id]);
+  }
+
+  async function syncWakeLock(){
+    const need = raceUnderway() && document.visibilityState === "visible";
+    if(!need){
+      if(wakeLock){
+        try{ await wakeLock.release(); }catch{}
+        wakeLock = null;
+      }
+      return;
+    }
+    if(!("wakeLock" in navigator) || wakeLock) return;
+    try{
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    }catch{}
+  }
+
+  function render(){
+    const activeId = activePhaseId();
+    const complete = !activeId;
+    if(activeId && activeId !== lastActiveId){
+      forcedClosed.delete(activeId);
+      lastActiveId = activeId;
+    }
+
+    app.config.phases.forEach(phase => {
+      const section = phasesEl.querySelector(`[data-id="${phase.id}"]`);
+      if(!section) return;
+      const count = app.state.counts[phase.id] || 0;
+      const done = count >= phase.laps;
+      const started = isStarted(phase.id);
+      const times = app.state.times[phase.id] || [];
+      const label = phaseMeta(phase).label;
+
+      [...section.querySelectorAll(".lap")].forEach((el, i) => {
+        const hasTime = i < times.length;
+        el.classList.toggle("done", i < count);
+        el.classList.toggle("timed", hasTime);
+        const timeEl = el.querySelector(".lap-time");
+        if(hasTime && app.config.precision === "hundredths"){
+          const formatted = formatTime(times[i]);
+          const dot = formatted.lastIndexOf(".");
+          timeEl.innerHTML = `${formatted.slice(0, dot)}<span class="lap-time-frac">${formatted.slice(dot)}</span>`;
+        } else {
+          timeEl.textContent = hasTime ? formatTime(times[i]) : "";
+        }
+      });
+
+      section.querySelector('[data-role="counter"]').textContent = `${count} / ${phase.laps}`;
+      section.querySelector('[data-role="clock"]').textContent = formatTime(phaseElapsed(phase));
+
+      const btn = section.querySelector('[data-role="btn"]');
+      btn.disabled = done || activeId !== phase.id;
+      if(done){
+        const totalMs = times.reduce((sum, ms) => sum + toUnits(ms), 0) * unitMs();
+        btn.textContent = `${label} finished!  ${formatTime(totalMs)}`;
+      } else if(!started){
+        btn.textContent = `Start ${label}`;
+      } else {
+        btn.textContent = `Tap to count lap`;
+      }
+
+      section.classList.toggle("finished", done);
+      if(done && !finishedIds.has(phase.id)){
+        finishedIds.add(phase.id);
+        celebrate();
+      } else if(!done){
+        finishedIds.delete(phase.id);
+      }
+      section.classList.toggle("inactive", !done && activeId !== phase.id);
+      section.classList.toggle("active", activeId === phase.id);
+      const open = forcedOpen.has(phase.id) || (activeId === phase.id && !forcedClosed.has(phase.id));
+      section.classList.toggle("collapsed", !open);
+      const toggle = section.querySelector('[data-role="toggle"]');
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "Collapse" : "Expand");
+    });
+
+    if(!complete) noticeDismissed = false;
+    const notice = completionNotice();
+    const msgEl = $("blockMsg");
+    if(notice){
+      msgEl.textContent = notice.text;
+      msgEl.classList.add("show");
+      if(notice.beforeId){
+        const nextSection = phasesEl.querySelector(`[data-id="${notice.beforeId}"]`);
+        if(nextSection) phasesEl.insertBefore(msgEl, nextSection);
+      } else {
+        phasesEl.after(msgEl);
+      }
+    } else {
+      msgEl.textContent = "";
+      msgEl.classList.remove("show");
+    }
+
+    $("shotBtn").classList.toggle("show", complete);
+    save();
+    syncWakeLock();
+  }
+
+  function openModal(id){ $(id).classList.add("show"); }
+  function closeModal(id){ $(id).classList.remove("show"); }
+
+  function renderPhaseEditors(){
+    const host = $("phaseEditors");
+    host.innerHTML = "";
+    draft.phases = draft.phases.map(normalizePhase);
+    draft.phases.forEach((phase, index) => {
+      const row = document.createElement("div");
+      row.className = "phase-editor";
+      row.innerHTML = `
+        <div class="phase-editor-row">
+          <div class="field" style="margin:0">
+            <label>Discipline</label>
+            <select data-field="type">
+              <option value="swim"${phase.type === "swim" ? " selected" : ""}>Swim</option>
+              <option value="bike"${phase.type === "bike" ? " selected" : ""}>Bike</option>
+              <option value="run"${phase.type === "run" ? " selected" : ""}>Run</option>
+            </select>
+          </div>
+          <div class="field" style="margin:0">
+            <label>Laps</label>
+            <input data-field="laps" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${phase.laps}">
+          </div>
+          <button class="small remove-phase" type="button" aria-label="Remove">✕</button>
+        </div>
+      `;
+
+      row.querySelector('[data-field="type"]').addEventListener("change", e => {
+        phase.type = e.target.value;
+      });
+
+      row.querySelector('[data-field="laps"]').addEventListener("input", e => {
+        phase.laps = Math.max(1, Math.min(40, parseInt(e.target.value, 10) || 1));
+      });
+
+      row.querySelector(".remove-phase").addEventListener("click", () => {
+        if(draft.phases.length <= 1) return;
+        draft.phases.splice(index, 1);
+        renderPhaseEditors();
+      });
+
+      host.appendChild(row);
+    });
+  }
+
+  function openSetup(){
+    draft = clone(app.config);
+    $("timePrecision").value = normalizePrecision(draft.precision);
+    renderPhaseEditors();
+    openModal("setupModal");
+  }
+
+  $("addPhaseBtn").addEventListener("click", () => {
+    draft.phases.push({
+      id: uid(),
+      type: "bike",
+      laps: 4
+    });
+    renderPhaseEditors();
+  });
+
+  $("setupBtn").addEventListener("click", openSetup);
+  $("setupCancelBtn").addEventListener("click", () => closeModal("setupModal"));
+  $("setupModal").addEventListener("click", e => {
+    if(e.target === $("setupModal")) closeModal("setupModal");
+  });
+
+  $("setupSaveBtn").addEventListener("click", () => {
+    draft.precision = $("timePrecision").value;
+    draft = normalizeConfig(draft);
+    if(!draft.phases.length){
+      draft.phases = clone(DEFAULT_CONFIG.phases);
+    }
+
+    app.config = draft;
+    app.state = emptyState(app.config);
+    finishedIds.clear();
+    clearForced();
+    closeModal("setupModal");
+    buildPhases();
+    render();
+  });
+
+  $("undoBtn").addEventListener("click", () => {
+    const last = app.state.history.pop();
+    if(!last) return;
+    const id = typeof last === "string" ? last : last.id;
+    const kind = typeof last === "string" ? "lap" : last.kind;
+
+    if(kind === "start"){
+      delete app.state.startedAt[id];
+    } else if(app.state.counts[id] > 0){
+      app.state.counts[id]--;
+      if(app.state.times[id]?.length) app.state.times[id].pop();
+    }
+    render();
+  });
+
+  $("resetBtn").addEventListener("click", () => openModal("resetModal"));
+  $("resetCancelBtn").addEventListener("click", () => closeModal("resetModal"));
+  $("resetModal").addEventListener("click", e => {
+    if(e.target === $("resetModal")) closeModal("resetModal");
+  });
+  $("resetConfirmBtn").addEventListener("click", () => {
+    closeModal("resetModal");
+    app.state = emptyState(app.config);
+    finishedIds.clear();
+    clearForced();
+    render();
+  });
+
+  function loadHtml2Canvas(){
+    if(window.html2canvas) return Promise.resolve(window.html2canvas);
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+      script.onload = () => resolve(window.html2canvas);
+      script.onerror = () => reject(new Error("Could not load screenshot helper"));
+      document.head.appendChild(script);
+    });
+  }
+
+  function waitFrames(){
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  }
+
+  async function shareOrDownload(blob){
+    const file = new File([blob], "lap-counter.png", {type:"image/png"});
+    try{
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:"Lap Counter"});
+        return;
+      }
+    }catch(err){
+      if(err && err.name === "AbortError") return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "lap-counter.png";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  $("shotBtn").addEventListener("click", async () => {
+    const btn = $("shotBtn");
+    btn.disabled = true;
+    btn.textContent = "Saving…";
+    noticeDismissed = true;
+    app.config.phases.forEach(phase => {
+      forcedOpen.add(phase.id);
+      forcedClosed.delete(phase.id);
+    });
+    render();
+    await waitFrames();
+    document.body.classList.add("capturing");
+    await waitFrames();
+    try{
+      const html2canvas = await loadHtml2Canvas();
+      const wrap = document.querySelector(".wrap");
+      const canvas = await html2canvas(wrap, {
+        backgroundColor:"#000000",
+        scale: Math.min(2, window.devicePixelRatio || 1),
+        useCORS:true
+      });
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+      if(blob) await shareOrDownload(blob);
+    }catch{
+      alert("All blocks are expanded. Use your phone’s screenshot now.");
+    }finally{
+      document.body.classList.remove("capturing");
+      btn.disabled = false;
+      btn.textContent = "Save screenshot";
+    }
+  });
+
+  function isIosPhone(){
+    return /iPhone|iPod/.test(navigator.userAgent);
+  }
+
+  function isStandalone(){
+    return window.navigator.standalone === true
+      || window.matchMedia("(display-mode: standalone)").matches;
+  }
+
+  function shouldShowInstallHint(){
+    return isIosPhone()
+      && !isStandalone()
+      && location.protocol === "https:"
+      && localStorage.getItem(INSTALL_HINT_KEY) !== "1";
+  }
+
+  function initInstallHint(){
+    const el = $("installHint");
+    if(!el || !shouldShowInstallHint()) return;
+    el.classList.add("show");
+    $("installHintDismiss").addEventListener("click", () => {
+      localStorage.setItem(INSTALL_HINT_KEY, "1");
+      el.classList.remove("show");
+    });
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible") syncWakeLock();
+  });
+
+  if("serviceWorker" in navigator && location.protocol !== "file:"){
+    navigator.serviceWorker.register("./sw.js");
+  }
+
+  initInstallHint();
+  buildPhases();
+  render();
+  setInterval(updateClocks, 50);
+})();
+</script>
+</body>
+</html>
