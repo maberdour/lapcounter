@@ -37,6 +37,7 @@
     place-items:center;
     background:#000000;
     color:#ffffff;
+    --splash-logo:min(280px,72vw);
   }
   .splash.hide{display:none}
   .splash-title{
@@ -45,7 +46,7 @@
     right:20px;
     top:50%;
     margin:0;
-    transform:translateY(calc(-50% - min(96px,21vw) - 180px));
+    transform:translateY(calc(-50% - (var(--splash-logo) / 2) - 180px));
     font-size:clamp(40px,10vw,64px);
     font-weight:1000;
     letter-spacing:-.03em;
@@ -56,9 +57,10 @@
   }
   .splash.ready .splash-title{opacity:1}
   .splash-logo{
-    width:min(192px,42vw);
+    width:var(--splash-logo);
     height:auto;
     display:block;
+    border-radius:22.37%;
   }
   .splash-site{
     position:absolute;
@@ -66,7 +68,7 @@
     right:20px;
     top:50%;
     margin:0;
-    transform:translateY(calc(-50% + min(96px,21vw) + 72px));
+    transform:translateY(calc(-50% + (var(--splash-logo) / 2) + 72px));
     font-size:clamp(24px,6vw,36px);
     font-weight:900;
     letter-spacing:-.02em;
