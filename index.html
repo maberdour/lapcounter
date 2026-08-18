@@ -741,7 +741,7 @@
       try{
         const old = JSON.parse(legacy);
         return {
-the           config,
+          config,
           state: normalizeState(config, {
             counts: { bike: old.bike || 0, run: old.run || 0 },
             history: Array.isArray(old.history) ? old.history : []
