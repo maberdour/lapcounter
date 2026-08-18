@@ -784,7 +784,7 @@
       if(next && !isStarted(next.id)){
         const nextLabel = phaseMeta(next).label;
         return {
-          text: `${doneLabel} laps are completed! Press Start on the ${nextLabel} to start timing ${nextLabel} laps`,
+          text: `${doneLabel} laps are completed! Once transition is exited, press Start ${nextLabel} to start timing the ${nextLabel} laps`,
           beforeId: next.id
         };
       }
