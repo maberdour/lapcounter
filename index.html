@@ -506,7 +506,7 @@
     display:none;
     align-items:center;
     gap:12px;
-    margin:8px 0 0;
+    margin:24px 0 0;
     padding:12px;
     border:3px solid #ffffff;
     border-radius:16px;
@@ -665,6 +665,44 @@
   const phasesEl = $("phases");
   const canvas = $("confetti");
   const ctx = canvas.getContext("2d");
+
+  let deferredInstall = null;
+
+  function isIosDevice(){
+    return /iPhone|iPod|iPad/.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  function isStandalone(){
+    return window.navigator.standalone === true
+      || window.matchMedia("(display-mode: standalone)").matches;
+  }
+
+  function hintAllowed(){
+    return !isStandalone()
+      && window.isSecureContext
+      && localStorage.getItem(INSTALL_HINT_KEY) !== "1";
+  }
+
+  function showInstallHint(kind){
+    const el = $("installHint");
+    const text = $("installHintText");
+    if(!el || !text || !hintAllowed()) return;
+    if(kind === "ios"){
+      text.textContent = "Tap Share, then Add to Home Screen.";
+      el.classList.remove("can-install");
+    } else {
+      text.textContent = "Install the app for a home-screen icon and offline use.";
+      el.classList.add("can-install");
+    }
+    el.classList.add("show");
+  }
+
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    deferredInstall = e;
+    showInstallHint("prompt");
+  });
 
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
 
@@ -1348,45 +1386,6 @@
     if(e.target === $("shotModal")) closeShotModal();
   });
 
-  let deferredInstall = null;
-
-  function isIosDevice(){
-    return /iPhone|iPod|iPad/.test(navigator.userAgent)
-      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  }
-
-  function isAndroid(){
-    return /Android/i.test(navigator.userAgent);
-  }
-
-  function isStandalone(){
-    return window.navigator.standalone === true
-      || window.matchMedia("(display-mode: standalone)").matches;
-  }
-
-  function hintAllowed(){
-    return !isStandalone()
-      && window.isSecureContext
-      && localStorage.getItem(INSTALL_HINT_KEY) !== "1";
-  }
-
-  function showInstallHint(kind){
-    const el = $("installHint");
-    const text = $("installHintText");
-    if(!el || !text || !hintAllowed()) return;
-    if(kind === "ios"){
-      text.textContent = "Tap Share, then Add to Home Screen.";
-      el.classList.remove("can-install");
-    } else if(kind === "prompt"){
-      text.textContent = "Install the app for a home-screen icon and offline use.";
-      el.classList.add("can-install");
-    } else {
-      text.textContent = "Tap the browser menu, then Install app.";
-      el.classList.remove("can-install");
-    }
-    el.classList.add("show");
-  }
-
   function initInstallHint(){
     const el = $("installHint");
     if(!el || isStandalone() || !window.isSecureContext) return;
@@ -1405,12 +1404,6 @@
       localStorage.setItem(INSTALL_HINT_KEY, "1");
     });
 
-    window.addEventListener("beforeinstallprompt", e => {
-      e.preventDefault();
-      deferredInstall = e;
-      showInstallHint("prompt");
-    });
-
     window.addEventListener("appinstalled", () => {
       deferredInstall = null;
       el.classList.remove("show");
@@ -1418,8 +1411,8 @@
     });
 
     if(!hintAllowed()) return;
-    if(isIosDevice()) showInstallHint("ios");
-    else if(isAndroid()) showInstallHint("android");
+    if(deferredInstall) showInstallHint("prompt");
+    else if(isIosDevice()) showInstallHint("ios");
   }
 
   document.addEventListener("visibilitychange", () => {
