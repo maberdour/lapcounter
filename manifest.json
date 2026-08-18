@@ -1,7 +1,7 @@
 {
   "id": "https://laps.letsrace.cc/",
   "name": "Lap Counter",
-  "short_name": "Lap Counter",
+  "short_name": "Laps",
   "description": "Count swim, bike, and run laps. Works offline.",
   "start_url": "./",
   "scope": "./",

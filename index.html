@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Lap Counter">
+<meta name="apple-mobile-web-app-title" content="Laps">
 <title>Lap Counter</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
@@ -29,6 +29,52 @@
     font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     -webkit-tap-highlight-color:transparent;
   }
+  .splash{
+    position:fixed;
+    inset:0;
+    z-index:20000;
+    display:grid;
+    place-items:center;
+    background:#000000;
+    color:#ffffff;
+  }
+  .splash.hide{display:none}
+  .splash-title{
+    position:absolute;
+    left:20px;
+    right:20px;
+    top:50%;
+    margin:0;
+    transform:translateY(calc(-50% - min(96px,21vw) - 180px));
+    font-size:clamp(40px,10vw,64px);
+    font-weight:1000;
+    letter-spacing:-.03em;
+    text-align:center;
+    line-height:1.15;
+    opacity:0;
+    transition:opacity .4s ease;
+  }
+  .splash.ready .splash-title{opacity:1}
+  .splash-logo{
+    width:min(192px,42vw);
+    height:auto;
+    display:block;
+  }
+  .splash-site{
+    position:absolute;
+    left:20px;
+    right:20px;
+    top:50%;
+    margin:0;
+    transform:translateY(calc(-50% + min(96px,21vw) + 72px));
+    font-size:clamp(24px,6vw,36px);
+    font-weight:900;
+    letter-spacing:-.02em;
+    text-align:center;
+    opacity:0;
+    transition:opacity .4s ease;
+  }
+  .splash.ready .splash-site{opacity:1}
   .wrap{
     position:relative;
     width:min(680px,100%);
@@ -552,6 +598,11 @@
 </style>
 </head>
 <body>
+<div class="splash" id="splash">
+  <p class="splash-title">Multisport<br>Lap Counter</p>
+  <img class="splash-logo" id="splashLogo" src="./icons/icon-512.png" alt="">
+  <p class="splash-site">letsrace.cc</p>
+</div>
 <main class="wrap">
   <button class="setup-btn" id="setupBtn" type="button" aria-label="Event setup">
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1362,6 +1413,24 @@
   buildPhases();
   render();
   setInterval(updateClocks, 50);
+
+  const SPLASH_MS = 2000;
+  const splash = $("splash");
+  const splashLogo = $("splashLogo");
+  const splashReady = new Promise(resolve => {
+    if(!splashLogo || splashLogo.complete) resolve();
+    else {
+      splashLogo.addEventListener("load", resolve, {once:true});
+      splashLogo.addEventListener("error", resolve, {once:true});
+    }
+  });
+  splashReady.then(() => {
+    requestAnimationFrame(() => splash?.classList.add("ready"));
+  });
+  Promise.all([
+    splashReady,
+    new Promise(resolve => setTimeout(resolve, SPLASH_MS))
+  ]).then(() => splash?.classList.add("hide"));
 })();
 </script>
 </body>
