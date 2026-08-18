@@ -1,4 +1,4 @@
-const CACHE = "lap-counter-v7";
+const CACHE = "lap-counter-v8";
 const PRECACHE = [
   "./",
   "./index.html",

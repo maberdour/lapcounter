@@ -38,22 +38,27 @@
     background:#000000;
     color:#ffffff;
     --splash-logo:min(280px,72vw);
+    opacity:1;
+    transition:opacity .45s ease;
   }
-  .splash.hide{display:none}
+  .splash.hide{
+    opacity:0;
+    pointer-events:none;
+  }
   .splash-title{
     position:absolute;
     left:20px;
     right:20px;
     top:50%;
     margin:0;
-    transform:translateY(calc(-50% - (var(--splash-logo) / 2) - 180px));
+    transform:translateY(calc(-50% - (var(--splash-logo) / 2) - 88px));
     font-size:clamp(40px,10vw,64px);
     font-weight:1000;
     letter-spacing:-.03em;
     text-align:center;
     line-height:1.15;
     opacity:0;
-    transition:opacity .4s ease;
+    transition:opacity .7s ease;
   }
   .splash.ready .splash-title{opacity:1}
   .splash-logo{
@@ -74,7 +79,7 @@
     letter-spacing:-.02em;
     text-align:center;
     opacity:0;
-    transition:opacity .4s ease;
+    transition:opacity .7s ease;
   }
   .splash.ready .splash-site{opacity:1}
   .wrap{
@@ -1417,6 +1422,7 @@
   setInterval(updateClocks, 50);
 
   const SPLASH_MS = 2000;
+  const TEXT_FADE_DELAY_MS = 400;
   const splash = $("splash");
   const splashLogo = $("splashLogo");
   const splashReady = new Promise(resolve => {
@@ -1427,7 +1433,11 @@
     }
   });
   splashReady.then(() => {
-    requestAnimationFrame(() => splash?.classList.add("ready"));
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setTimeout(() => splash?.classList.add("ready"), TEXT_FADE_DELAY_MS);
+      });
+    });
   });
   Promise.all([
     splashReady,
