@@ -509,6 +509,19 @@
     font-size:20px;
     font-weight:800;
   }
+  .install-hint-add{
+    display:none;
+    flex:0 0 auto;
+    min-height:60px;
+    padding:0 16px;
+    border:3px solid #ffffff;
+    border-radius:14px;
+    background:#00e676;
+    color:#000000;
+    font-size:22px;
+    font-weight:1000;
+  }
+  .install-hint.can-install .install-hint-add{display:block}
   .install-hint-dismiss{
     flex:0 0 auto;
     width:60px;
@@ -549,8 +562,9 @@
   <div class="install-hint" id="installHint">
     <div class="install-hint-copy">
       <strong>Add to Home Screen</strong>
-      <span>Tap Share, then Add to Home Screen.</span>
+      <span id="installHintText">Tap Share, then Add to Home Screen.</span>
     </div>
+    <button class="install-hint-add" id="installHintAdd" type="button">Install</button>
     <button class="install-hint-dismiss" id="installHintDismiss" type="button" aria-label="Dismiss">✕</button>
   </div>
   <p class="block-msg" id="blockMsg"></p>
@@ -1262,8 +1276,15 @@
     }
   });
 
-  function isIosPhone(){
-    return /iPhone|iPod/.test(navigator.userAgent);
+  let deferredInstall = null;
+
+  function isIosDevice(){
+    return /iPhone|iPod|iPad/.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  function isAndroid(){
+    return /Android/i.test(navigator.userAgent);
   }
 
   function isStandalone(){
@@ -1271,21 +1292,62 @@
       || window.matchMedia("(display-mode: standalone)").matches;
   }
 
-  function shouldShowInstallHint(){
-    return isIosPhone()
-      && !isStandalone()
-      && location.protocol === "https:"
+  function hintAllowed(){
+    return !isStandalone()
+      && window.isSecureContext
       && localStorage.getItem(INSTALL_HINT_KEY) !== "1";
+  }
+
+  function showInstallHint(kind){
+    const el = $("installHint");
+    const text = $("installHintText");
+    if(!el || !text || !hintAllowed()) return;
+    if(kind === "ios"){
+      text.textContent = "Tap Share, then Add to Home Screen.";
+      el.classList.remove("can-install");
+    } else if(kind === "prompt"){
+      text.textContent = "Install the app for a home-screen icon and offline use.";
+      el.classList.add("can-install");
+    } else {
+      text.textContent = "Tap the browser menu, then Install app.";
+      el.classList.remove("can-install");
+    }
+    el.classList.add("show");
   }
 
   function initInstallHint(){
     const el = $("installHint");
-    if(!el || !shouldShowInstallHint()) return;
-    el.classList.add("show");
+    if(!el || isStandalone() || !window.isSecureContext) return;
+
     $("installHintDismiss").addEventListener("click", () => {
       localStorage.setItem(INSTALL_HINT_KEY, "1");
       el.classList.remove("show");
     });
+
+    $("installHintAdd").addEventListener("click", async () => {
+      if(!deferredInstall) return;
+      deferredInstall.prompt();
+      try{ await deferredInstall.userChoice; }catch{}
+      deferredInstall = null;
+      el.classList.remove("show");
+      localStorage.setItem(INSTALL_HINT_KEY, "1");
+    });
+
+    window.addEventListener("beforeinstallprompt", e => {
+      e.preventDefault();
+      deferredInstall = e;
+      showInstallHint("prompt");
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredInstall = null;
+      el.classList.remove("show");
+      localStorage.setItem(INSTALL_HINT_KEY, "1");
+    });
+
+    if(!hintAllowed()) return;
+    if(isIosDevice()) showInstallHint("ios");
+    else if(isAndroid()) showInstallHint("android");
   }
 
   document.addEventListener("visibilitychange", () => {
