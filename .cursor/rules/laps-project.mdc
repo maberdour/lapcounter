@@ -1,0 +1,19 @@
+---
+description: Core conventions for the Lap Counter project
+alwaysApply: true
+---
+
+# Lap Counter
+
+1. **Single HTML file** — The app UI and logic live in one HTML file (`index.html`). Do not split the app into multiple HTML/CSS/JS files, add a build step, or introduce a framework unless explicitly asked.
+2. **PWA support files are allowed** — `manifest.json`, `sw.js`, `CNAME`, and `icons/` exist so the app can be installed and used offline. Do not add other docs, configs, or dependencies unless requested.
+3. **One CSS rule per selector** — Define each element's styles once. Avoid stacked override blocks that redefine the same selectors. State variants (`.lap.done`, `.big:disabled`, media queries) are fine; duplicate base rules are not.
+4. **Phone-first** — Layout and tap targets are for outdoor phone use (large buttons, readable type).
+5. **Persist locally** — Lap counts stay in `localStorage` so a refresh does not lose progress.
+6. **Keep changes minimal** — Prefer editing `index.html` in place. When the cached app shell changes, bump the cache name in `sw.js`.
+
+## Design
+
+- **High contrast for outdoor sun** — This is the primary visual rule. The app is used on a phone outdoors on sunny days; maximize contrast so every control stays readable in glare. Prefer black/white (or near-black/near-white) backgrounds and text. Avoid mid-grey type, low-opacity overlays, thin hairlines, muted pastels, and any palette that washes out in sunlight.
+- Keep borders thick and high-contrast so buttons, laps, and panels remain visible in direct sun.
+- use no more than 4 lap boxes per row, in order the UI is usable for older people with big clumsy fingers.
