@@ -1,4 +1,4 @@
-# Lap Counter
+# LapTap
 
 A phone-first lap counter for swim, bike, and run. Built for outdoor use: large tap targets, high-contrast black and white, and counts that survive a refresh.
 
@@ -8,7 +8,7 @@ Live site: [laps.letsrace.cc](https://laps.letsrace.cc/)
 
 1. Open the site on your phone (or add it to the home screen).
 2. Tap the gear to set up the event: disciplines, lap counts, and time precision.
-3. On each discipline, tap **Start** to begin timing, then **Tap to count lap** as you finish each lap.
+3. On each discipline, tap **Start** to begin timing, then **Tap to complete a lap** as you finish each lap.
 4. When every discipline is done, tap **Save screenshot** to share or download a recap.
 
 Progress is stored on the phone in `localStorage`. Undo last tap and Reset are at the bottom.

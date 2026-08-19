@@ -1,9 +1,9 @@
 ---
-description: Core conventions for the Lap Counter project
+description: Core conventions for the LapTap project
 alwaysApply: true
 ---
 
-# Lap Counter
+# LapTap
 
 1. **Single HTML file** — The app UI and logic live in one HTML file (`index.html`). Do not split the app into multiple HTML/CSS/JS files, add a build step, or introduce a framework unless explicitly asked.
 2. **PWA support files are allowed** — `manifest.json`, `sw.js`, `CNAME`, and `icons/` exist so the app can be installed and used offline. Do not add other docs, configs, or dependencies unless requested.

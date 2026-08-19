@@ -7,8 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Laps">
-<title>Lap Counter</title>
+<meta name="apple-mobile-web-app-title" content="LapTap">
+<title>LapTap</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
@@ -578,7 +578,7 @@
       <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567l-.144.866a8.1 8.1 0 0 0-1.335.775l-.82-.36c-.85-.372-1.845-.05-2.35.76l-.922 1.48c-.505.81-.28 1.877.518 2.495l.72.56a8.2 8.2 0 0 0-.05 1.545l-.72.56c-.798.618-1.023 1.685-.518 2.495l.922 1.48c.505.81 1.5 1.132 2.35.76l.82-.36c.41.32.86.58 1.335.775l.144.866c.151.904.933 1.567 1.85 1.567h1.844c.917 0 1.699-.663 1.85-1.567l.144-.866a8.1 8.1 0 0 0 1.335-.775l.82.36c.85.372 1.845.05 2.35-.76l.922-1.48c.505-.81.28-1.877-.518-2.495l-.72-.56a8.2 8.2 0 0 0 .05-1.545l.72-.56c.798-.618 1.023-1.685.518-2.495l-.922-1.48c-.505-.81-1.5-1.132-2.35-.76l-.82.36a8.1 8.1 0 0 0-1.335-.775l-.144-.866c-.151-.904-.933-1.567-1.85-1.567h-1.844ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/>
     </svg>
   </button>
-  <h1>Lap Counter</h1>
+  <h1>LapTap</h1>
   <div class="install-hint" id="installHint">
     <div class="install-hint-copy">
       <strong>Add to Home Screen</strong>
@@ -645,8 +645,10 @@
 
 <script>
 (() => {
-  const STORAGE_KEY = "lapCounterApp";
-  const INSTALL_HINT_KEY = "lapCounterInstallHintDismissed";
+  const STORAGE_KEY = "laptapApp";
+  const INSTALL_HINT_KEY = "laptapInstallHintDismissed";
+  const LEGACY_STORAGE_KEY = "lapCounterApp";
+  const LEGACY_INSTALL_HINT_KEY = "lapCounterInstallHintDismissed";
   const DISCIPLINES = {
     swim: { label: "Swim", color: "#00a2ff" },
     bike: { label: "Bike", color: "#ffea00" },
@@ -681,7 +683,8 @@
   function hintAllowed(){
     return !isStandalone()
       && window.isSecureContext
-      && localStorage.getItem(INSTALL_HINT_KEY) !== "1";
+      && localStorage.getItem(INSTALL_HINT_KEY) !== "1"
+      && localStorage.getItem(LEGACY_INSTALL_HINT_KEY) !== "1";
   }
 
   function showInstallHint(kind){
@@ -807,7 +810,7 @@
   }
 
   function loadApp(){
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if(raw){
       try{
         const parsed = JSON.parse(raw);
@@ -1128,7 +1131,7 @@
       } else if(!started){
         btn.textContent = `Start ${label}`;
       } else {
-        btn.textContent = `Tap to count lap`;
+        btn.textContent = `Tap to complete a lap`;
       }
 
       section.classList.toggle("finished", done);
@@ -1321,7 +1324,7 @@
     shotBlob = blob;
     shotUrl = URL.createObjectURL(blob);
     $("shotPreview").src = shotUrl;
-    const file = new File([blob], "lap-counter.png", {type:"image/png"});
+    const file = new File([blob], "laptap.png", {type:"image/png"});
     $("shotModal").classList.toggle("can-share", canShareShot(file));
     openModal("shotModal");
   }
@@ -1330,7 +1333,7 @@
     if(!shotBlob || !shotUrl) return;
     const link = document.createElement("a");
     link.href = shotUrl;
-    link.download = "lap-counter.png";
+    link.download = "laptap.png";
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -1338,9 +1341,9 @@
 
   async function shareShot(){
     if(!shotBlob) return;
-    const file = new File([shotBlob], "lap-counter.png", {type:"image/png"});
+    const file = new File([shotBlob], "laptap.png", {type:"image/png"});
     try{
-      await navigator.share({files:[file], title:"Lap Counter"});
+      await navigator.share({files:[file], title:"LapTap"});
     }catch(err){
       if(err && err.name === "AbortError") return;
     }
