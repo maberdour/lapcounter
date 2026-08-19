@@ -1,41 +1,46 @@
-# LapTap
+# About LapTap
 
-A phone-first lap counter for swim, bike, and run. Built for outdoor use: large tap targets, high-contrast black and white, and counts that survive a refresh.
+**LapTap by LetsRace** is a simple lap counter for parents, supporters and coaches at multi-lap cycling, running and multisport events.
 
-Live site: [laps.letsrace.cc](https://laps.letsrace.cc/)
+## Why I built LapTap
 
-## Use it
+I'm the parent of a youth triathlete. At many youth races, part of the parent's job is simply helping their athlete keep count.
 
-1. Open the site on your phone (or add it to the home screen).
-2. Tap the gear to set up the event: disciplines, lap counts, and time precision.
-3. On each discipline, tap **Start** to begin timing, then **Tap to complete a lap** as you finish each lap.
-4. When every discipline is done, tap **Save screenshot** to share or download a recap.
+That sounds easy. In practice, it isn't. You're watching the race, looking out for your child, cheering, talking to other parents and trying to work out what's happening elsewhere on the course. At a busy event, it's surprisingly easy to lose count.
 
-Progress is stored on the phone in `localStorage`. Undo last tap and Reset are at the bottom.
+We've learnt that the hard way. On more than one occasion, my child has been disqualified for completing the wrong number of laps.
 
-## Install as an app
+I wanted something incredibly simple that I could have in my hand beside the course. Each time my child passes me, I tap the screen. LapTap does the counting.
 
-The site is a PWA and works offline after the first visit.
+No complicated timing system. No spreadsheet. No trying to remember whether that was lap four or lap five.
 
-- **iPhone / iPad:** Safari → Share → Add to Home Screen
-- **Android:** use the on-screen Install prompt, or the browser menu → Install app
+## Designed for the side of a race course
 
-## Run locally
+LapTap has been designed specifically for use during a race, when your attention should be on the athlete rather than the app.
 
-Open `index.html` in a browser, or serve the folder with any static server so the service worker can register:
+That means large tap targets, a high-contrast display that can be read outdoors, a very clear indication of the number of laps remaining, and an Undo button for those inevitable accidental taps.
 
-```bash
-npx serve .
-```
+The idea is deliberately simple:
 
-## Project layout
+**See them. Tap. Keep count.**
 
-| File | Role |
-| --- | --- |
-| `index.html` | App UI, styles, and logic |
-| `manifest.json` | PWA name, icons, standalone display |
-| `sw.js` | Offline cache |
-| `icons/` | Favicon, Apple touch icon, and install icons |
-| `CNAME` | GitHub Pages host `laps.letsrace.cc` |
+LapTap can be used anywhere competitors complete repeated laps or circuits — including cycle circuits, velodromes, cyclocross courses, cross-country courses, running events, duathlons and triathlons.
 
-No build step and no framework. After changing the cached app shell, bump the cache name in `sw.js`.
+## How to use LapTap
+
+1. **Set the number of laps** for each part of the race.
+2. **Start the race** and keep LapTap open while you watch.
+3. **Tap the active button** each time the athlete passes you.
+4. LapTap automatically **counts down the laps remaining** and moves to the next discipline when required.
+5. Made a mistake? Tap **Undo** to remove the last lap.
+6. When you're ready for another race, tap **Reset** and start again.
+
+## About LetsRace
+
+LetsRace is a collection of simple tools designed to make grassroots racing easier for riders, parents, supporters and coaches.
+
+LetsRace started by making it easier to find youth cycling races. LapTap applies the same approach to race day itself: identify a real problem, keep the solution simple, and build something that's genuinely useful at the side of the course.
+
+LapTap will continue to be developed and tested with parents, supporters and coaches at real events. The aim is to keep it simple: **one less thing to worry about on race day.**
+
+Visit LetsRace.cc
