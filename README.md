@@ -33,3 +33,5 @@ LetsRace is a collection of simple tools designed to make grassroots racing easi
 LetsRace started by making it easier to find youth cycling races. LapTap applies the same approach to race day itself: identify a real problem, keep the solution simple, and build something that's genuinely useful at the side of the course.
 
 LapTap will continue to be developed and tested with parents, supporters and coaches at real events. The aim is to keep it simple: **one less thing to worry about on race day.**
+
+Visit LetsRace.cc
