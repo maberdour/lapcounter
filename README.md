@@ -28,7 +28,7 @@ LapTap can be used anywhere competitors complete repeated laps or circuits — i
 
 ## About LetsRace
 
-LapTap is part of LetsRace, a collection of simple tools designed to make grassroots racing easier for riders, parents, supporters and coaches.
+LetsRace is a collection of simple tools designed to make grassroots racing easier for riders, parents, supporters and coaches.
 
 LetsRace started by making it easier to find youth cycling races. LapTap applies the same approach to race day itself: identify a real problem, keep the solution simple, and build something that's genuinely useful at the side of the course.
 
