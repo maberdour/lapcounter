@@ -63,6 +63,11 @@
     height:80%;
     display:block;
   }
+  .setup-btn:disabled{
+    background:#222222;
+    color:#ffffff;
+    cursor:default;
+  }
   #phases{
     margin-top:48px;
   }
@@ -283,9 +288,17 @@
     font-weight:800;
     text-shadow:0 1px 0 #000;
   }
+  .small:disabled{
+    background:#222222;
+    color:#ffffff;
+    cursor:default;
+  }
   .small.reset{
     color:#ffd2d2;
     font-weight:1000;
+  }
+  .small.reset:disabled{
+    color:#ffffff;
   }
   .shot{
     display:none;
@@ -557,6 +570,35 @@
     font-size:21px;
     font-weight:800;
   }
+  .install-hint.compact{
+    flex-direction:row;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    padding:12px;
+  }
+  .install-hint.compact .install-hint-copy{
+    display:none;
+  }
+  .install-hint.compact.show-copy .install-hint-copy{
+    display:block;
+    flex:1 1 100%;
+    text-align:left;
+  }
+  .install-hint.compact.show-copy .install-hint-copy strong{
+    font-size:clamp(20px,5vw,24px);
+  }
+  .install-hint.compact.show-copy .install-hint-copy span{
+    margin-top:4px;
+    font-size:18px;
+  }
+  .install-hint.compact .install-hint-add,
+  .install-hint.compact .install-hint-dismiss{
+    flex:1 1 140px;
+    width:auto;
+    min-height:54px;
+    font-size:18px;
+  }
 
   @media (max-height:740px){
     .wrap{padding:9px 12px max(9px,env(safe-area-inset-bottom))}
@@ -585,7 +627,7 @@
   <div class="install-hint" id="installHint">
     <div class="install-hint-copy">
       <strong id="installHintTitle">Install for race day</strong>
-      <span id="installHintText">Works with no signal. Add LapTap to your Home Screen before you start counting.</span>
+      <span id="installHintText">To use LapTap with no phone signal, install it now and then open from your Home screen.</span>
     </div>
     <button class="install-hint-add" id="installHintAdd" type="button">Install</button>
     <button class="install-hint-dismiss" id="installHintDismiss" type="button">Not now</button>
@@ -652,6 +694,7 @@
   const INSTALL_HINT_KEY = "laptapInstallHintDismissed";
   const LEGACY_STORAGE_KEY = "lapCounterApp";
   const LEGACY_INSTALL_HINT_KEY = "lapCounterInstallHintDismissed";
+  const COMPACT_SESSION_KEY = "laptapInstallCompactDismissed";
   const DISCIPLINES = {
     swim: { label: "Swim", color: "#00a2ff" },
     bike: { label: "Bike", color: "#ffea00" },
@@ -683,35 +726,94 @@
       || window.matchMedia("(display-mode: standalone)").matches;
   }
 
-  function hintAllowed(){
-    return !isStandalone()
-      && window.isSecureContext
-      && localStorage.getItem(INSTALL_HINT_KEY) !== "1"
-      && localStorage.getItem(LEGACY_INSTALL_HINT_KEY) !== "1";
+  function canShowInstallUi(){
+    return !isStandalone() && window.isSecureContext;
+  }
+
+  function blockDismissed(){
+    return localStorage.getItem(INSTALL_HINT_KEY) === "1"
+      || localStorage.getItem(LEGACY_INSTALL_HINT_KEY) === "1";
+  }
+
+  function compactDismissedThisVisit(){
+    try{
+      return sessionStorage.getItem(COMPACT_SESSION_KEY) === "1";
+    }catch{
+      return false;
+    }
   }
 
   function installPending(){
-    return $("installHint")?.classList.contains("show");
+    const el = $("installHint");
+    return Boolean(el?.classList.contains("show") && !el.classList.contains("compact"));
+  }
+
+  function applyInstallLock(){
+    const pending = installPending();
+    const setup = $("setupBtn");
+    const undo = $("undoBtn");
+    const reset = $("resetBtn");
+    if(setup) setup.disabled = pending;
+    if(undo) undo.disabled = pending;
+    if(reset) reset.disabled = pending;
+    phasesEl.classList.toggle("install-locked", pending);
   }
 
   function showInstallHint(kind){
     const el = $("installHint");
     const title = $("installHintTitle");
     const text = $("installHintText");
-    if(!el || !title || !text || !hintAllowed()) return;
+    const add = $("installHintAdd");
+    if(!el || !title || !text || !add || !canShowInstallUi()) return;
+
+    if(kind === "prompt" || kind === "ios"){
+      if(blockDismissed()) kind = "compact";
+    }
+    if(kind === "compact" || kind === "compact-ios" || kind === "compact-waiting"){
+      if(compactDismissedThisVisit()) return;
+    }
+
+    const compact = kind === "compact" || kind === "compact-ios" || kind === "compact-waiting";
+    el.classList.toggle("compact", compact);
+    el.classList.toggle("show-copy", kind === "compact-ios" || kind === "compact-waiting");
+    el.dataset.kind = kind;
+
     if(kind === "waiting"){
-      title.textContent = "Open LapTap from your Home Screen";
-      text.textContent = "Leave this browser tab — this page will not work reliably on race day.";
+      title.textContent = "Open it from your Home screen";
+      text.textContent = "Leave this browser tab. Use the LapTap icon so it still works with no signal.";
+      add.textContent = "Install";
       el.classList.remove("can-install");
     } else if(kind === "ios"){
       title.textContent = "Install for race day";
-      text.textContent = "Works with no signal. Add LapTap to your Home Screen before you start counting. Tap Share, then Add to Home Screen.";
+      text.textContent = "To use LapTap with no phone signal, install it now and then open from your Home screen. Tap Share, then Add to Home Screen.";
+      add.textContent = "Install";
+      el.classList.remove("can-install");
+    } else if(kind === "compact"){
+      title.textContent = "Install for Offline Use";
+      text.textContent = isIosDevice()
+        ? "Tap Share, then Add to Home Screen."
+        : "Use your browser menu to install the app, then open it from your Home screen.";
+      add.textContent = "Install for Offline Use";
+      el.classList.add("can-install");
+    } else if(kind === "compact-ios"){
+      title.textContent = "Install for Offline Use";
+      text.textContent = isIosDevice()
+        ? "Tap Share, then Add to Home Screen."
+        : "Use your browser menu to install the app, then open it from your Home screen.";
+      add.textContent = "Install for Offline Use";
+      el.classList.remove("can-install");
+    } else if(kind === "compact-waiting"){
+      title.textContent = "Open it from your Home screen";
+      text.textContent = "Use the LapTap icon so it still works with no signal.";
+      add.textContent = "Install for Offline Use";
       el.classList.remove("can-install");
     } else {
       title.textContent = "Install for race day";
-      text.textContent = "Works with no signal. Add LapTap to your Home Screen before you start counting.";
+      text.textContent = "To use LapTap with no phone signal, install it now and then open from your Home screen.";
+      add.textContent = "Install";
       el.classList.add("can-install");
     }
+
     el.classList.add("show");
     if(typeof render === "function") render();
   }
@@ -719,7 +821,7 @@
   window.addEventListener("beforeinstallprompt", e => {
     e.preventDefault();
     deferredInstall = e;
-    showInstallHint("prompt");
+    showInstallHint(blockDismissed() ? "compact" : "prompt");
   });
 
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -1145,7 +1247,9 @@
       const pending = installPending();
       btn.disabled = pending || done || activeId !== phase.id;
       if(pending && !done){
-        btn.textContent = "Open the Home Screen app first";
+        btn.textContent = $("installHint")?.dataset.kind === "waiting"
+          ? "Open the Home screen icon"
+          : "Install first";
       } else if(done){
         const totalMs = times.reduce((sum, ms) => sum + toUnits(ms), 0) * unitMs();
         btn.textContent = `${label} finished!  ${formatTime(totalMs)}`;
@@ -1189,7 +1293,7 @@
     }
 
     $("shotBtn").classList.toggle("show", complete);
-    phasesEl.classList.toggle("install-locked", installPending());
+    applyInstallLock();
     save();
     syncWakeLock();
   }
@@ -1241,6 +1345,7 @@
   }
 
   function openSetup(){
+    if(installPending()) return;
     draft = clone(app.config);
     $("timePrecision").value = normalizePrecision(draft.precision);
     renderPhaseEditors();
@@ -1279,6 +1384,7 @@
   });
 
   $("undoBtn").addEventListener("click", () => {
+    if(installPending()) return;
     const last = app.state.history.pop();
     if(!last) return;
     const id = typeof last === "string" ? last : last.id;
@@ -1293,7 +1399,10 @@
     render();
   });
 
-  $("resetBtn").addEventListener("click", () => openModal("resetModal"));
+  $("resetBtn").addEventListener("click", () => {
+    if(installPending()) return;
+    openModal("resetModal");
+  });
   $("resetCancelBtn").addEventListener("click", () => closeModal("resetModal"));
   $("resetModal").addEventListener("click", e => {
     if(e.target === $("resetModal")) closeModal("resetModal");
@@ -1413,16 +1522,37 @@
 
   function initInstallHint(){
     const el = $("installHint");
-    if(!el || isStandalone() || !window.isSecureContext) return;
+    if(!el || !canShowInstallUi()) return;
 
     $("installHintDismiss").addEventListener("click", () => {
+      if(el.classList.contains("compact")){
+        try{ sessionStorage.setItem(COMPACT_SESSION_KEY, "1"); }catch{}
+        el.classList.remove("show", "compact", "can-install", "show-copy");
+        el.dataset.kind = "";
+        render();
+        return;
+      }
       localStorage.setItem(INSTALL_HINT_KEY, "1");
-      el.classList.remove("show");
-      el.classList.remove("can-install");
-      render();
+      showInstallHint(el.dataset.kind === "waiting" ? "compact-waiting" : "compact");
     });
 
     $("installHintAdd").addEventListener("click", async () => {
+      const compact = el.classList.contains("compact");
+      if(compact){
+        if(deferredInstall){
+          deferredInstall.prompt();
+          try{
+            const choice = await deferredInstall.userChoice;
+            deferredInstall = null;
+            if(choice && choice.outcome === "accepted") showInstallHint("compact-waiting");
+          }catch{
+            deferredInstall = null;
+          }
+          return;
+        }
+        showInstallHint("compact-ios");
+        return;
+      }
       if(!deferredInstall) return;
       deferredInstall.prompt();
       try{
@@ -1436,11 +1566,12 @@
 
     window.addEventListener("appinstalled", () => {
       deferredInstall = null;
-      showInstallHint("waiting");
+      showInstallHint(el.classList.contains("compact") || blockDismissed() ? "compact-waiting" : "waiting");
     });
 
-    if(!hintAllowed()) return;
-    if(deferredInstall) showInstallHint("prompt");
+    if(compactDismissedThisVisit()) return;
+    if(blockDismissed()) showInstallHint("compact");
+    else if(deferredInstall) showInstallHint("prompt");
     else if(isIosDevice()) showInstallHint("ios");
   }
 
