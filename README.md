@@ -1,66 +1,37 @@
 # About LapTap
 
-LapTap is a simple race-day lap counter for parents, supporters and coaches.
+**LapTap by LetsRace** is a simple lap counter for parents, supporters and coaches at multi-lap cycling, running and multisport events.
 
-Watching someone race should be exciting. But when they're completing multiple laps of a cycling circuit, running course or multisport event, it can be surprisingly easy to lose count.
+## Why I built LapTap
 
-LapTap gives you one simple job: tap each time the athlete passes.
+I'm the parent of a youth triathlete. At many youth races, part of the parent's job is simply helping their athlete keep count.
 
-The app keeps track of the laps, clearly shows how many are left, and lets you concentrate on watching and supporting the race rather than trying to remember whether that was lap four or lap five.
+That sounds easy. In practice, it isn't.
 
-## Designed for race day
+Youth events can involve several bike laps followed by several run laps. You're watching the race, looking out for your child, cheering, talking to other parents and trying to work out what's happening elsewhere on the course. At a busy event, it's surprisingly easy to lose count.
 
-LapTap has been designed specifically for use beside a race course on a mobile phone.
+We've learnt that the hard way. On more than one occasion, my child has been disqualified for completing the wrong number of laps.
 
-That means:
+I wanted something incredibly simple that I could have in my hand beside the course. Each time my child passes me, I tap the screen. LapTap does the counting.
 
-- Big buttons that are easy to tap quickly
-- High contrast for visibility outdoors and in bright sunshine
-- At-a-glance lap counts so you don't need to study the screen
-- Undo for those inevitable accidental taps
-- No unnecessary distractions while the race is underway
-- Gender-neutral design and language that works for anyone you're supporting
+No complicated timing system. No spreadsheet. No trying to remember whether that was lap four or lap five.
 
-LapTap can be used anywhere competitors complete repeated laps or circuits, including cycling, running, cross-country, cyclocross, duathlon, triathlon and track events.
+## Designed for the side of a race course
 
-## Built from a real race-day problem
+LapTap has been designed specifically for use during a race, when your attention should be on the athlete rather than the app.
 
-LapTap started with a very simple problem: keeping count of the bike and run laps while supporting a young athlete in a duathlon.
+That means large tap targets, a high-contrast display that can be read outdoors, a very clear indication of the number of laps remaining, and an Undo button for those inevitable accidental taps.
 
-Rather than building a complicated timing application, we started with the simplest possible solution and designed it around what a supporter actually needs while standing beside a course.
+The idea is deliberately simple:
 
-LapTap is being developed and tested with real parents and supporters at real events. The aim is to keep improving it without losing the simplicity that makes it useful.
+**See them. Tap. Keep count.**
 
-## Part of LetsRace
+LapTap can be used anywhere competitors complete repeated laps or circuits — including cycle circuits, velodromes, cyclocross courses, cross-country courses, running events, duathlons and triathlons.
 
-LapTap is from LetsRace, helping riders and families discover and enjoy grassroots cycle racing.
+## About LetsRace
 
-Our aim with LapTap is equally simple: make race day a little easier for the people standing at the side of the course.
+LapTap is part of LetsRace, a collection of simple tools designed to make grassroots racing easier for riders, parents, supporters and coaches.
 
-See them. Tap. Keep count.
+LetsRace started by making it easier to find youth cycling races. LapTap applies the same approach to race day itself: identify a real problem, keep the solution simple, and build something that's genuinely useful at the side of the course.
 
-## Live site 
-
-[laps.letsrace.cc](https://laps.letsrace.cc/)
-
-## Use it
-
-1. Open the site on your phone
-
-2. Click install to make it available for offline use on race day, this add the app icon to your home screen.
-
-- **iPhone / iPad:** Safari → Share → Add to Home Screen
-- **Android:** use the on-screen Install prompt, or the browser menu → Install app
-
-3. Tap the gear to set up the event: disciplines, lap counts, and time precision.
-
-4. On each discipline, tap **Start** to begin timing, then **Tap to count lap** as you finish each lap.
-
-5. When every discipline is done, tap **Save screenshot** to share with your athlete or download a recap.
-
-Undo last tap and Reset Laps are at the bottom.
-
-Progress is stored on your phone for the active event. please note that there is no event history. 
-
-
-
+LapTap will continue to be developed and tested with parents, supporters and coaches at real events. The aim is to keep it simple: **one less thing to worry about on race day.**
