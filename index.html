@@ -66,6 +66,7 @@
   #phases{
     margin-top:48px;
   }
+  #phases.install-locked{opacity:.62}
   .phase{
     background:var(--panel);
     border:3px solid #ffffff;
@@ -504,55 +505,57 @@
   }
   .install-hint{
     display:none;
-    align-items:center;
-    gap:12px;
+    flex-direction:column;
+    align-items:stretch;
+    gap:16px;
     margin:24px 0 0;
-    padding:12px;
-    border:3px solid #ffffff;
-    border-radius:16px;
-    background:#000000;
-    color:#ffffff;
+    padding:20px 16px;
+    border:4px solid #ffffff;
+    border-radius:18px;
+    background:#ffffff;
+    color:#000000;
   }
   .install-hint.show{display:flex}
   .install-hint-copy{
-    flex:1;
-    min-width:0;
+    text-align:center;
   }
   .install-hint-copy strong{
     display:block;
-    font-size:22px;
-    font-weight:900;
+    font-size:clamp(26px,6.2vw,34px);
+    font-weight:1000;
+    letter-spacing:-.03em;
+    line-height:1.15;
   }
   .install-hint-copy span{
     display:block;
-    margin-top:4px;
-    font-size:20px;
+    margin-top:10px;
+    font-size:clamp(20px,5.4vw,24px);
     font-weight:800;
+    line-height:1.3;
   }
   .install-hint-add{
     display:none;
-    flex:0 0 auto;
-    min-height:60px;
-    padding:0 16px;
-    border:3px solid #ffffff;
-    border-radius:14px;
-    background:#00e676;
-    color:#000000;
-    font-size:22px;
+    width:100%;
+    min-height:76px;
+    padding:14px 12px;
+    border:4px solid #000000;
+    border-radius:17px;
+    background:#000000;
+    color:#ffffff;
+    font-size:clamp(22px,5.8vw,28px);
     font-weight:1000;
   }
   .install-hint.can-install .install-hint-add{display:block}
   .install-hint-dismiss{
-    flex:0 0 auto;
-    width:60px;
-    height:60px;
-    padding:0;
-    border:3px solid #ffffff;
-    border-radius:14px;
-    background:#000000;
-    color:#ffffff;
-    font-size:28px;
-    font-weight:900;
+    width:100%;
+    min-height:54px;
+    padding:12px 8px;
+    border:3px solid #000000;
+    border-radius:12px;
+    background:#ffffff;
+    color:#000000;
+    font-size:21px;
+    font-weight:800;
   }
 
   @media (max-height:740px){
@@ -581,11 +584,11 @@
   <h1>LapTap</h1>
   <div class="install-hint" id="installHint">
     <div class="install-hint-copy">
-      <strong>Add to Home Screen</strong>
-      <span id="installHintText">Tap Share, then Add to Home Screen.</span>
+      <strong id="installHintTitle">Install for race day</strong>
+      <span id="installHintText">Works with no signal. Add LapTap to your Home Screen before you start counting.</span>
     </div>
     <button class="install-hint-add" id="installHintAdd" type="button">Install</button>
-    <button class="install-hint-dismiss" id="installHintDismiss" type="button" aria-label="Dismiss">✕</button>
+    <button class="install-hint-dismiss" id="installHintDismiss" type="button">Not now</button>
   </div>
   <p class="block-msg" id="blockMsg"></p>
   <div id="phases"></div>
@@ -687,18 +690,30 @@
       && localStorage.getItem(LEGACY_INSTALL_HINT_KEY) !== "1";
   }
 
+  function installPending(){
+    return $("installHint")?.classList.contains("show");
+  }
+
   function showInstallHint(kind){
     const el = $("installHint");
+    const title = $("installHintTitle");
     const text = $("installHintText");
-    if(!el || !text || !hintAllowed()) return;
-    if(kind === "ios"){
-      text.textContent = "Tap Share, then Add to Home Screen.";
+    if(!el || !title || !text || !hintAllowed()) return;
+    if(kind === "waiting"){
+      title.textContent = "Open LapTap from your Home Screen";
+      text.textContent = "Leave this browser tab — this page will not work reliably on race day.";
+      el.classList.remove("can-install");
+    } else if(kind === "ios"){
+      title.textContent = "Install for race day";
+      text.textContent = "Works with no signal. Add LapTap to your Home Screen before you start counting. Tap Share, then Add to Home Screen.";
       el.classList.remove("can-install");
     } else {
-      text.textContent = "Install the app for a home-screen icon and offline use.";
+      title.textContent = "Install for race day";
+      text.textContent = "Works with no signal. Add LapTap to your Home Screen before you start counting.";
       el.classList.add("can-install");
     }
     el.classList.add("show");
+    if(typeof render === "function") render();
   }
 
   window.addEventListener("beforeinstallprompt", e => {
@@ -996,6 +1011,7 @@
   }
 
   function startPhase(id){
+    if(installPending()) return;
     const phase = app.config.phases.find(p => p.id === id);
     if(!phase) return;
     if(activePhaseId() !== id) return;
@@ -1008,6 +1024,7 @@
   }
 
   function tapPhase(id){
+    if(installPending()) return;
     const phase = app.config.phases.find(p => p.id === id);
     if(!phase) return;
     if(activePhaseId() !== id) return;
@@ -1025,6 +1042,7 @@
   }
 
   function onPhaseButton(id){
+    if(installPending()) return;
     const now = Date.now();
     if(now - lastTapAt < TAP_COOLDOWN_MS) return;
     lastTapAt = now;
@@ -1124,8 +1142,11 @@
       section.querySelector('[data-role="clock"]').textContent = formatTime(phaseElapsed(phase));
 
       const btn = section.querySelector('[data-role="btn"]');
-      btn.disabled = done || activeId !== phase.id;
-      if(done){
+      const pending = installPending();
+      btn.disabled = pending || done || activeId !== phase.id;
+      if(pending && !done){
+        btn.textContent = "Open the Home Screen app first";
+      } else if(done){
         const totalMs = times.reduce((sum, ms) => sum + toUnits(ms), 0) * unitMs();
         btn.textContent = `${label} finished!  ${formatTime(totalMs)}`;
       } else if(!started){
@@ -1168,6 +1189,7 @@
     }
 
     $("shotBtn").classList.toggle("show", complete);
+    phasesEl.classList.toggle("install-locked", installPending());
     save();
     syncWakeLock();
   }
@@ -1396,21 +1418,25 @@
     $("installHintDismiss").addEventListener("click", () => {
       localStorage.setItem(INSTALL_HINT_KEY, "1");
       el.classList.remove("show");
+      el.classList.remove("can-install");
+      render();
     });
 
     $("installHintAdd").addEventListener("click", async () => {
       if(!deferredInstall) return;
       deferredInstall.prompt();
-      try{ await deferredInstall.userChoice; }catch{}
-      deferredInstall = null;
-      el.classList.remove("show");
-      localStorage.setItem(INSTALL_HINT_KEY, "1");
+      try{
+        const choice = await deferredInstall.userChoice;
+        deferredInstall = null;
+        if(choice && choice.outcome === "accepted") showInstallHint("waiting");
+      }catch{
+        deferredInstall = null;
+      }
     });
 
     window.addEventListener("appinstalled", () => {
       deferredInstall = null;
-      el.classList.remove("show");
-      localStorage.setItem(INSTALL_HINT_KEY, "1");
+      showInstallHint("waiting");
     });
 
     if(!hintAllowed()) return;
