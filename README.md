@@ -1,41 +1,27 @@
 # Lap Counter
 
-A phone-first lap counter for swim, bike, and run. Built for outdoor use: large tap targets, high-contrast black and white, and counts that survive a refresh.
+A phone-first lap counter for multi-sport events. Built for outdoor use: large tap targets, high-contrast black and white that can be seen on sunny days, and counts that survive a better refresh.
 
 Live site: [laps.letsrace.cc](https://laps.letsrace.cc/)
 
 ## Use it
 
-1. Open the site on your phone (or add it to the home screen).
-2. Tap the gear to set up the event: disciplines, lap counts, and time precision.
-3. On each discipline, tap **Start** to begin timing, then **Tap to count lap** as you finish each lap.
-4. When every discipline is done, tap **Save screenshot** to share or download a recap.
+1. Open the site on your phone
 
-Progress is stored on the phone in `localStorage`. Undo last tap and Reset are at the bottom.
-
-## Install as an app
-
-The site is a PWA and works offline after the first visit.
+2. Click install to make it available for offline use on race day, this add the app icon to your home screen.
 
 - **iPhone / iPad:** Safari → Share → Add to Home Screen
 - **Android:** use the on-screen Install prompt, or the browser menu → Install app
 
-## Run locally
+3. Tap the gear to set up the event: disciplines, lap counts, and time precision.
 
-Open `index.html` in a browser, or serve the folder with any static server so the service worker can register:
+4. On each discipline, tap **Start** to begin timing, then **Tap to count lap** as you finish each lap.
 
-```bash
-npx serve .
-```
+5. When every discipline is done, tap **Save screenshot** to share with your athlete or download a recap.
 
-## Project layout
+Undo last tap and Reset Laps are at the bottom.
 
-| File | Role |
-| --- | --- |
-| `index.html` | App UI, styles, and logic |
-| `manifest.json` | PWA name, icons, standalone display |
-| `sw.js` | Offline cache |
-| `icons/` | Favicon, Apple touch icon, and install icons |
-| `CNAME` | GitHub Pages host `laps.letsrace.cc` |
+Progress is stored on your phone for the active event. please note that there is no event history. 
 
-No build step and no framework. After changing the cached app shell, bump the cache name in `sw.js`.
+
+
