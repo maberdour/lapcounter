@@ -26,6 +26,15 @@ The idea is deliberately simple:
 
 LapTap can be used anywhere competitors complete repeated laps or circuits — including cycle circuits, velodromes, cyclocross courses, cross-country courses, running events, duathlons and triathlons.
 
+## How to use LapTap
+
+1. **Set the number of laps** for each part of the race.
+2. **Start the race** and keep LapTap open while you watch.
+3. **Tap the active button** each time the athlete passes you.
+4. LapTap automatically **counts down the laps remaining** and moves to the next discipline when required.
+5. Made a mistake? Tap **Undo** to remove the last lap.
+6. When you're ready for another race, tap **Reset** and start again.
+
 ## About LetsRace
 
 LetsRace is a collection of simple tools designed to make grassroots racing easier for riders, parents, supporters and coaches.
