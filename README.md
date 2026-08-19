@@ -6,9 +6,7 @@
 
 I'm the parent of a youth triathlete. At many youth races, part of the parent's job is simply helping their athlete keep count.
 
-That sounds easy. In practice, it isn't.
-
-Youth events can involve several bike laps followed by several run laps. You're watching the race, looking out for your child, cheering, talking to other parents and trying to work out what's happening elsewhere on the course. At a busy event, it's surprisingly easy to lose count.
+That sounds easy. In practice, it isn't. You're watching the race, looking out for your child, cheering, talking to other parents and trying to work out what's happening elsewhere on the course. At a busy event, it's surprisingly easy to lose count.
 
 We've learnt that the hard way. On more than one occasion, my child has been disqualified for completing the wrong number of laps.
 
