@@ -612,15 +612,21 @@
     display:flex;
     align-items:center;
     gap:12px;
-    padding:12px 14px;
-    border:3px solid #000000;
-    border-radius:14px;
+    padding:4px 0;
     background:#ffffff;
     color:#000000;
     font-size:clamp(18px,5vw,22px);
     font-weight:800;
     line-height:1.25;
     text-align:left;
+  }
+  .install-hint-ios-label{
+    margin:0 0 2px;
+    font-size:clamp(20px,5.4vw,24px);
+    font-weight:900;
+    line-height:1.25;
+    text-align:left;
+    color:#000000;
   }
   .install-hint-ios-num{
     flex:0 0 auto;
@@ -699,9 +705,10 @@
   <div class="install-hint" id="installHint">
     <div class="install-hint-copy">
       <strong id="installHintTitle">Install for race day</strong>
-      <span id="installHintText">Use this app offline in case of a poor phone signal on race day. Apple users: Tap the Share button, scroll down the list and choose 'Add to Home Screen', then relaunch the app from Home screen.</span>
+      <span id="installHintText">Use this app offline to ensure it works on race day, whatever your phone signal.</span>
     </div>
     <div class="install-hint-ios" id="installHintIos">
+      <p class="install-hint-ios-label">Instructions for Apple users:</p>
       <div class="install-hint-ios-step">
         <span class="install-hint-ios-num">1</span>
         <span class="install-hint-ios-text" id="installHintIosStep1">Tap the Share icon at the bottom of Safari</span>
@@ -790,7 +797,7 @@
   const LEGACY_INSTALL_HINT_KEY = "lapCounterInstallHintDismissed";
   const COMPACT_SESSION_KEY = "laptapInstallCompactDismissed";
   const INSTALL_TITLE = "Install for race day";
-  const INSTALL_TEXT = "Use this app offline in case of a poor phone signal on race day. Apple users: Tap the Share button, scroll down the list and choose 'Add to Home Screen', then relaunch the app from Home screen.";
+  const INSTALL_TEXT = "Use this app offline to ensure it works on race day, whatever your phone signal.";
   const DISCIPLINES = {
     swim: { label: "Swim", color: "#00a2ff" },
     bike: { label: "Bike", color: "#ffea00" },
