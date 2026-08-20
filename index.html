@@ -1781,6 +1781,7 @@
     if(!("serviceWorker" in navigator) || location.protocol === "file:") return;
 
     const currentShell = document.querySelector('meta[name="laptap-version"]')?.content || "";
+    const hadController = Boolean(navigator.serviceWorker.controller);
     let reloading = false;
     function reloadNow(){
       if(reloading) return;
@@ -1788,6 +1789,11 @@
       const next = new URL(location.href);
       next.searchParams.set("u", String(Date.now()));
       location.replace(next.pathname + next.search + next.hash);
+    }
+
+    function reloadForUpdate(){
+      if(!hadController) return;
+      reloadNow();
     }
 
     function takeWaiting(reg){
@@ -1816,9 +1822,9 @@
       });
     }
 
-    navigator.serviceWorker.addEventListener("controllerchange", reloadNow);
+    navigator.serviceWorker.addEventListener("controllerchange", reloadForUpdate);
     navigator.serviceWorker.addEventListener("message", event => {
-      if(event.data?.type === "laptap-reload") reloadNow();
+      if(event.data?.type === "laptap-reload") reloadForUpdate();
     });
 
     navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(reg => {
@@ -1828,7 +1834,7 @@
         if(!worker) return;
         worker.addEventListener("statechange", () => {
           if(worker.state === "installed") takeWaiting(reg);
-          if(worker.state === "activated") reloadNow();
+          if(worker.state === "activated") reloadForUpdate();
         });
       });
       return reg.update();

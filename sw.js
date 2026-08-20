@@ -41,7 +41,8 @@ self.addEventListener("activate", event => {
     const stale = keys.filter(key => key !== CACHE);
     await Promise.all(stale.map(key => caches.delete(key)));
     await self.clients.claim();
-    await reloadClients();
+    // First install has no old cache. Navigating then freezes iOS Home Screen apps.
+    if(stale.length) await reloadClients();
   })());
 });
 
