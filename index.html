@@ -1698,22 +1698,61 @@
     else if(isIosDevice()) showInstallHint("ios");
   }
 
-  function refreshServiceWorker(){
-    navigator.serviceWorker.getRegistration("./").then(reg => reg?.update());
+  function initServiceWorker(){
+    if(!("serviceWorker" in navigator) || location.protocol === "file:") return;
+
+    let reloading = false;
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    function reloadForWorker(){
+      if(reloading || !hadController) return;
+      reloading = true;
+      location.reload();
+    }
+
+    function takeWaiting(reg){
+      if(!reg?.waiting) return false;
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      setTimeout(reloadForWorker, 500);
+      return true;
+    }
+
+    function checkForUpdate(){
+      navigator.serviceWorker.getRegistration("./").then(reg => {
+        if(!reg) return;
+        takeWaiting(reg);
+        return reg.update();
+      });
+    }
+
+    navigator.serviceWorker.addEventListener("controllerchange", reloadForWorker);
+    navigator.serviceWorker.addEventListener("message", event => {
+      if(event.data?.type === "laptap-reload") reloadForWorker();
+    });
+
+    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(reg => {
+      takeWaiting(reg);
+      reg.addEventListener("updatefound", () => {
+        const worker = reg.installing;
+        if(!worker) return;
+        worker.addEventListener("statechange", () => {
+          if(worker.state === "installed") takeWaiting(reg);
+          if(worker.state === "activated") reloadForWorker();
+        });
+      });
+      return reg.update();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if(document.visibilityState === "visible") checkForUpdate();
+    });
+    window.addEventListener("pageshow", checkForUpdate);
   }
 
   document.addEventListener("visibilitychange", () => {
-    if(document.visibilityState === "visible"){
-      syncWakeLock();
-      refreshServiceWorker();
-    }
+    if(document.visibilityState === "visible") syncWakeLock();
   });
 
-  if("serviceWorker" in navigator && location.protocol !== "file:"){
-    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(reg => {
-      reg.update();
-    });
-  }
+  initServiceWorker();
 
   initInstallHint();
   buildPhases();
