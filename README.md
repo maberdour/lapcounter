@@ -43,4 +43,4 @@ LetsRace started by making it easier to find youth cycling races. LapTap applies
 
 LapTap will continue to be developed and tested with parents, supporters and coaches at real events. The aim is to keep it simple: **one less thing to worry about on race day.**
 
-Visit LetsRace.cc
+Visit [LetsRace.cc](https://www.letsrace.cc/)
