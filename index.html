@@ -189,7 +189,7 @@
     display:grid;
     grid-template-columns:repeat(4,1fr);
     gap:12px;
-    margin:8px 0 10px;
+    margin:8px 0 22px;
   }
   .lap{
     aspect-ratio:1/1;
@@ -599,6 +599,75 @@
     min-height:54px;
     font-size:18px;
   }
+  .install-hint-ios{
+    display:none;
+    flex:1 1 100%;
+    flex-direction:column;
+    gap:10px;
+  }
+  .install-hint.show-ios-steps .install-hint-ios{
+    display:flex;
+  }
+  .install-hint-ios-step{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    border:3px solid #000000;
+    border-radius:14px;
+    background:#ffffff;
+    color:#000000;
+    font-size:clamp(18px,5vw,22px);
+    font-weight:800;
+    line-height:1.25;
+    text-align:left;
+  }
+  .install-hint-ios-num{
+    flex:0 0 auto;
+    width:40px;
+    height:40px;
+    display:grid;
+    place-items:center;
+    border:3px solid #000000;
+    border-radius:10px;
+    background:#000000;
+    color:#ffffff;
+    font-size:22px;
+    font-weight:1000;
+  }
+  .install-hint-ios-text{
+    flex:1;
+    min-width:0;
+  }
+  .ios-share-icon{
+    flex:0 0 auto;
+    width:40px;
+    height:40px;
+    display:grid;
+    place-items:center;
+  }
+  .install-hint-ios-step .ios-share-icon[hidden]{
+    display:none;
+  }
+  .ios-share-icon svg{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .ios-share-pointer{
+    display:none;
+    position:fixed;
+    left:50%;
+    bottom:max(4px, env(safe-area-inset-bottom));
+    z-index:10001;
+    width:72px;
+    height:72px;
+    transform:translateX(-50%);
+    pointer-events:none;
+  }
+  .install-hint.show-ios-pointer .ios-share-pointer{
+    display:block;
+  }
 
   @media (max-height:740px){
     .wrap{padding:9px 12px max(9px,env(safe-area-inset-bottom))}
@@ -608,11 +677,14 @@
     .phase-head{margin-bottom:12px}
     .phase-title{font-size:25px}
     .counter, .clock{font-size:26px}
-    .laps{margin:5px 0 7px;gap:10px}
+    .laps{margin:5px 0 18px;gap:10px}
     .big{min-height:64px;font-size:21px}
     .controls{margin:22px 0}
     .small{padding:10px 6px;font-size:19px}
     .block-msg{margin:14px 0 0;padding:12px;font-size:19px}
+  }
+  @media (min-width:768px){
+    .laps{margin:8px 0 28px}
   }
 </style>
 </head>
@@ -627,10 +699,32 @@
   <div class="install-hint" id="installHint">
     <div class="install-hint-copy">
       <strong id="installHintTitle">Install for race day</strong>
-      <span id="installHintText">To use LapTap with no phone signal, install it now and then open from your Home screen.</span>
+      <span id="installHintText">Use this app offline in case of a poor phone signal on race day. Apple users: Tap the Share button, scroll down the list and choose 'Add to Home Screen', then relaunch the app from Home screen.</span>
+    </div>
+    <div class="install-hint-ios" id="installHintIos">
+      <div class="install-hint-ios-step">
+        <span class="install-hint-ios-num">1</span>
+        <span class="install-hint-ios-text" id="installHintIosStep1">Tap the Share icon at the bottom of Safari</span>
+        <span class="ios-share-icon" id="installHintIosIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M8 9H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M12 3v12M8 7l4-4 4 4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </div>
+      <div class="install-hint-ios-step">
+        <span class="install-hint-ios-num">2</span>
+        <span class="install-hint-ios-text" id="installHintIosStep2">Tap Add to Home Screen</span>
+      </div>
     </div>
     <button class="install-hint-add" id="installHintAdd" type="button">Install</button>
     <button class="install-hint-dismiss" id="installHintDismiss" type="button">Not now</button>
+    <div class="ios-share-pointer" id="iosSharePointer" aria-hidden="true">
+      <svg viewBox="0 0 64 64">
+        <path d="M8 18 L32 50 L56 18" fill="none" stroke="#000000" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 18 L32 50 L56 18" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
   </div>
   <p class="block-msg" id="blockMsg"></p>
   <div id="phases"></div>
@@ -695,6 +789,8 @@
   const LEGACY_STORAGE_KEY = "lapCounterApp";
   const LEGACY_INSTALL_HINT_KEY = "lapCounterInstallHintDismissed";
   const COMPACT_SESSION_KEY = "laptapInstallCompactDismissed";
+  const INSTALL_TITLE = "Install for race day";
+  const INSTALL_TEXT = "Use this app offline in case of a poor phone signal on race day. Apple users: Tap the Share button, scroll down the list and choose 'Add to Home Screen', then relaunch the app from Home screen.";
   const DISCIPLINES = {
     swim: { label: "Swim", color: "#00a2ff" },
     bike: { label: "Bike", color: "#ffea00" },
@@ -719,6 +815,34 @@
   function isIosDevice(){
     return /iPhone|iPod|iPad/.test(navigator.userAgent)
       || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  function isIpadDevice(){
+    return /iPad/.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  function isIosSafari(){
+    if(!isIosDevice()) return false;
+    return !/CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo/.test(navigator.userAgent);
+  }
+
+  function fillIosInstallSteps(){
+    const step1 = $("installHintIosStep1");
+    const step2 = $("installHintIosStep2");
+    const icon = $("installHintIosIcon");
+    if(!step1 || !step2) return;
+    if(isIosSafari()){
+      step1.textContent = isIpadDevice()
+        ? "Tap the Share icon at the top of Safari"
+        : "Tap the Share icon at the bottom of Safari";
+      step2.textContent = "Tap Add to Home Screen";
+      if(icon) icon.hidden = false;
+    } else {
+      step1.textContent = "Open this page in Safari";
+      step2.textContent = "Tap Share, then Add to Home Screen";
+      if(icon) icon.hidden = true;
+    }
   }
 
   function isStandalone(){
@@ -774,9 +898,13 @@
     }
 
     const compact = kind === "compact" || kind === "compact-ios" || kind === "compact-waiting";
+    const iosHelp = kind === "ios" || kind === "compact-ios";
     el.classList.toggle("compact", compact);
     el.classList.toggle("show-copy", kind === "compact-ios" || kind === "compact-waiting");
+    el.classList.toggle("show-ios-steps", iosHelp);
+    el.classList.toggle("show-ios-pointer", iosHelp && isIosSafari() && !isIpadDevice());
     el.dataset.kind = kind;
+    if(iosHelp) fillIosInstallSteps();
 
     if(kind === "waiting"){
       title.textContent = "Open it from your Home screen";
@@ -784,22 +912,18 @@
       add.textContent = "Install";
       el.classList.remove("can-install");
     } else if(kind === "ios"){
-      title.textContent = "Install for race day";
-      text.textContent = "To use LapTap with no phone signal, install it now and then open from your Home screen. Tap Share, then Add to Home Screen.";
+      title.textContent = INSTALL_TITLE;
+      text.textContent = INSTALL_TEXT;
       add.textContent = "Install";
       el.classList.remove("can-install");
     } else if(kind === "compact"){
-      title.textContent = "Install for Offline Use";
-      text.textContent = isIosDevice()
-        ? "Tap Share, then Add to Home Screen."
-        : "Use your browser menu to install the app, then open it from your Home screen.";
+      title.textContent = INSTALL_TITLE;
+      text.textContent = INSTALL_TEXT;
       add.textContent = "Install for Offline Use";
       el.classList.add("can-install");
     } else if(kind === "compact-ios"){
-      title.textContent = "Install for Offline Use";
-      text.textContent = isIosDevice()
-        ? "Tap Share, then Add to Home Screen."
-        : "Use your browser menu to install the app, then open it from your Home screen.";
+      title.textContent = INSTALL_TITLE;
+      text.textContent = INSTALL_TEXT;
       add.textContent = "Install for Offline Use";
       el.classList.remove("can-install");
     } else if(kind === "compact-waiting"){
@@ -808,8 +932,8 @@
       add.textContent = "Install for Offline Use";
       el.classList.remove("can-install");
     } else {
-      title.textContent = "Install for race day";
-      text.textContent = "To use LapTap with no phone signal, install it now and then open from your Home screen.";
+      title.textContent = INSTALL_TITLE;
+      text.textContent = INSTALL_TEXT;
       add.textContent = "Install";
       el.classList.add("can-install");
     }
@@ -1527,7 +1651,7 @@
     $("installHintDismiss").addEventListener("click", () => {
       if(el.classList.contains("compact")){
         try{ sessionStorage.setItem(COMPACT_SESSION_KEY, "1"); }catch{}
-        el.classList.remove("show", "compact", "can-install", "show-copy");
+        el.classList.remove("show", "compact", "can-install", "show-copy", "show-ios-steps", "show-ios-pointer");
         el.dataset.kind = "";
         render();
         return;

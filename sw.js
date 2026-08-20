@@ -1,4 +1,4 @@
-const CACHE = "laptap-v15";
+const CACHE = "laptap-v18";
 const PRECACHE = [
   "./",
   "./index.html",
