@@ -12,13 +12,13 @@ We've learnt that the hard way. On more than one occasion, my child has been dis
 
 I wanted something incredibly simple that I could have in my hand beside the course. Each time my child passes me, I tap the screen. LapTap does the counting.
 
-No complicated timing system. No spreadsheet. No trying to remember whether that was lap four or lap five.
+No more trying to remember whether that was lap four or lap five!
 
 ## Designed for the side of a race course
 
 LapTap has been designed specifically for use during a race, when your attention should be on the athlete rather than the app.
 
-That means large tap targets, a high-contrast display that can be read outdoors, a very clear indication of the number of laps remaining, and an Undo button for those inevitable accidental taps.
+That means large tap targets, a high-contrast display that can be read outdoors on a sunny day, a very clear indication of the number of laps remaining, and an Undo button for those inevitable accidental taps.
 
 The idea is deliberately simple:
 
