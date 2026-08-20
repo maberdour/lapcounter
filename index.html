@@ -721,7 +721,7 @@
       <p class="install-hint-ios-label">Instructions for Apple users:</p>
       <div class="install-hint-ios-step">
         <span class="install-hint-ios-num">1</span>
-        <span class="install-hint-ios-text" id="installHintIosStep1">Tap the Share icon at the bottom of Safari</span>
+        <span class="install-hint-ios-text" id="installHintIosStep1">Tap the Share button</span>
         <span class="ios-share-icon" id="installHintIosIcon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M8 9H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
@@ -731,7 +731,7 @@
       </div>
       <div class="install-hint-ios-step">
         <span class="install-hint-ios-num">2</span>
-        <span class="install-hint-ios-text" id="installHintIosStep2">Tap Add to Home Screen</span>
+        <span class="install-hint-ios-text" id="installHintIosStep2">Scroll down and tap Add to Home Screen</span>
       </div>
     </div>
     <button class="install-hint-add" id="installHintAdd" type="button">Install</button>
@@ -841,25 +841,8 @@
 
   function isIosSafari(){
     if(!isIosDevice()) return false;
-    return !/CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo/.test(navigator.userAgent);
-  }
-
-  function fillIosInstallSteps(){
-    const step1 = $("installHintIosStep1");
-    const step2 = $("installHintIosStep2");
-    const icon = $("installHintIosIcon");
-    if(!step1 || !step2) return;
-    if(isIosSafari()){
-      step1.textContent = isIpadDevice()
-        ? "Tap the Share icon at the top of Safari"
-        : "Tap the Share icon at the bottom of Safari";
-      step2.textContent = "Tap Add to Home Screen";
-      if(icon) icon.hidden = false;
-    } else {
-      step1.textContent = "Open this page in Safari";
-      step2.textContent = "Tap Share, then Add to Home Screen";
-      if(icon) icon.hidden = true;
-    }
+    if(/CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo/.test(navigator.userAgent)) return false;
+    return "safari" in window;
   }
 
   function isStandalone(){
@@ -921,7 +904,6 @@
     el.classList.toggle("show-ios-steps", iosHelp);
     el.classList.toggle("show-ios-pointer", iosHelp && isIosSafari() && !isIpadDevice());
     el.dataset.kind = kind;
-    if(iosHelp) fillIosInstallSteps();
 
     if(kind === "waiting"){
       title.textContent = "Open it from your Home screen";
