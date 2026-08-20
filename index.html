@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="LapTap">
+<meta name="laptap-version" content="laptap-v27">
 <title>LapTap</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
@@ -1779,22 +1780,35 @@
   function initServiceWorker(){
     if(!("serviceWorker" in navigator) || location.protocol === "file:") return;
 
+    const currentShell = document.querySelector('meta[name="laptap-version"]')?.content || "";
     let reloading = false;
-    const hadController = Boolean(navigator.serviceWorker.controller);
-    function reloadForWorker(){
-      if(reloading || !hadController) return;
+    function reloadNow(){
+      if(reloading) return;
       reloading = true;
-      location.reload();
+      const next = new URL(location.href);
+      next.searchParams.set("u", String(Date.now()));
+      location.replace(next.pathname + next.search + next.hash);
     }
 
     function takeWaiting(reg){
       if(!reg?.waiting) return false;
       reg.waiting.postMessage({ type: "SKIP_WAITING" });
-      setTimeout(reloadForWorker, 500);
       return true;
     }
 
+    async function checkShell(){
+      if(!currentShell || reloading) return;
+      try{
+        const res = await fetch(`./index.html?u=${Date.now()}`, { cache: "no-store" });
+        if(!res.ok) return;
+        const html = await res.text();
+        const live = html.match(/laptap-version"\s+content="([^"]+)"/);
+        if(live?.[1] && live[1] !== currentShell) reloadNow();
+      }catch{}
+    }
+
     function checkForUpdate(){
+      checkShell();
       navigator.serviceWorker.getRegistration("./").then(reg => {
         if(!reg) return;
         takeWaiting(reg);
@@ -1802,9 +1816,9 @@
       });
     }
 
-    navigator.serviceWorker.addEventListener("controllerchange", reloadForWorker);
+    navigator.serviceWorker.addEventListener("controllerchange", reloadNow);
     navigator.serviceWorker.addEventListener("message", event => {
-      if(event.data?.type === "laptap-reload") reloadForWorker();
+      if(event.data?.type === "laptap-reload") reloadNow();
     });
 
     navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(reg => {
@@ -1814,7 +1828,7 @@
         if(!worker) return;
         worker.addEventListener("statechange", () => {
           if(worker.state === "installed") takeWaiting(reg);
-          if(worker.state === "activated") reloadForWorker();
+          if(worker.state === "activated") reloadNow();
         });
       });
       return reg.update();
@@ -1824,6 +1838,8 @@
       if(document.visibilityState === "visible") checkForUpdate();
     });
     window.addEventListener("pageshow", checkForUpdate);
+    window.addEventListener("online", checkForUpdate);
+    setTimeout(checkForUpdate, 1500);
   }
 
   document.addEventListener("visibilitychange", () => {
