@@ -192,10 +192,12 @@
     margin:8px 0 22px;
   }
   .lap{
+    --lap-inset:max(6px,8%);
     aspect-ratio:1/1;
     border-radius:13px;
     display:grid;
     place-items:center;
+    position:relative;
     background:#000000;
     border:3px solid #ffffff;
     font-weight:600;
@@ -203,21 +205,30 @@
     transition:.15s ease;
     container-type:size;
   }
+  .lap-num,
+  .lap-time{
+    position:absolute;
+    inset:var(--lap-inset);
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
+    min-width:0;
+    min-height:0;
+    overflow:hidden;
+  }
   .lap-num{
-    font-size:80cqh;
+    display:flex;
+    font-size:72cqh;
     line-height:1;
   }
   .lap-time{
     display:none;
     flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    font-size:34cqh;
+    font-size:32cqh;
     font-weight:900;
     line-height:1;
     letter-spacing:-.04em;
     text-align:center;
-    padding:0 2%;
     font-variant-numeric:tabular-nums;
   }
   .lap-time-frac{
@@ -230,18 +241,17 @@
     background:#ffffff;
     color:#000000;
     border-color:#ffffff;
-    position:relative;
   }
   .lap.done:not(.timed)::after{
     content:"";
     position:absolute;
-    inset:0;
-    border-radius:11px;
+    inset:var(--lap-inset);
+    border-radius:8px;
     background-color:#ffffff;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5 12.5 10.2 18 19 6' stroke='%23000' stroke-width='2.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;
     background-position:center;
-    background-size:85% 85%;
+    background-size:contain;
   }
   .lap.done.timed .lap-num{display:none}
   .lap.done.timed .lap-time{display:flex}
@@ -1706,12 +1716,21 @@
     else if(isIosDevice()) showInstallHint("ios");
   }
 
+  function refreshServiceWorker(){
+    navigator.serviceWorker.getRegistration("./").then(reg => reg?.update());
+  }
+
   document.addEventListener("visibilitychange", () => {
-    if(document.visibilityState === "visible") syncWakeLock();
+    if(document.visibilityState === "visible"){
+      syncWakeLock();
+      refreshServiceWorker();
+    }
   });
 
   if("serviceWorker" in navigator && location.protocol !== "file:"){
-    navigator.serviceWorker.register("./sw.js");
+    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(reg => {
+      reg.update();
+    });
   }
 
   initInstallHint();
