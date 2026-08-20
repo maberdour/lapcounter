@@ -1354,7 +1354,7 @@
         el.classList.toggle("done", i < count);
         el.classList.toggle("timed", hasTime);
         const timeEl = el.querySelector(".lap-time");
-        if(hasTime && app.config.precision === "hundredths"){
+        if(hasTime && app.config.precision !== "seconds"){
           const formatted = formatTime(times[i]);
           const dot = formatted.lastIndexOf(".");
           timeEl.innerHTML = `${formatted.slice(0, dot)}<span class="lap-time-frac">${formatted.slice(dot)}</span>`;
