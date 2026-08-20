@@ -285,7 +285,43 @@
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:9px;
-    margin:28px 0;
+    margin:28px 0 12px;
+  }
+  .about-open{
+    width:100%;
+    margin:0 0 16px;
+  }
+  .about-copy h3{
+    margin:22px 0 10px;
+    font-size:24px;
+    font-weight:1000;
+    letter-spacing:-.03em;
+    line-height:1.2;
+  }
+  .about-copy p,
+  .about-copy li{
+    margin:0 0 12px;
+    font-size:20px;
+    font-weight:400;
+    line-height:1.4;
+  }
+  .about-copy strong{
+    font-weight:800;
+  }
+  .about-copy a{
+    color:#ffffff;
+    font-weight:800;
+    text-decoration:underline;
+  }
+  .about-copy ol{
+    margin:0 0 12px;
+    padding-left:1.35em;
+  }
+  .about-site{
+    display:grid;
+    place-items:center;
+    text-decoration:none;
+    color:#ffffff;
   }
   .small{
     border:3px solid #ffffff;
@@ -340,6 +376,7 @@
   .hint{display:none}
   body.capturing .setup-btn,
   body.capturing .controls,
+  body.capturing .about-open,
   body.capturing .shot,
   body.capturing .block-msg,
   body.capturing .install-hint,
@@ -373,7 +410,8 @@
     padding:32px 22px;
     text-align:center;
   }
-  .modal-panel.setup{
+  .modal-panel.setup,
+  .modal-panel.about{
     max-height:min(92dvh,900px);
     overflow:auto;
     text-align:left;
@@ -387,7 +425,8 @@
     line-height:1.1;
     text-align:center;
   }
-  .modal-panel.setup .modal-title{
+  .modal-panel.setup .modal-title,
+  .modal-panel.about .modal-title{
     font-size:34px;
     margin-bottom:16px;
   }
@@ -695,7 +734,7 @@
     .counter, .clock{font-size:26px}
     .laps{margin:5px 0 18px;gap:10px}
     .big{min-height:64px;font-size:21px}
-    .controls{margin:22px 0}
+    .controls{margin:22px 0 10px}
     .small{padding:10px 6px;font-size:19px}
     .block-msg{margin:14px 0 0;padding:12px;font-size:19px}
   }
@@ -750,6 +789,7 @@
     <button class="small" id="undoBtn" type="button">Undo last tap</button>
     <button class="small reset" id="resetBtn" type="button">Reset</button>
   </div>
+  <button class="small about-open" id="aboutBtn" type="button">About LapTap</button>
   <div class="hint">Counts are saved on this phone if the page is accidentally closed or refreshed.</div>
 </main>
 
@@ -774,6 +814,38 @@
     <div class="modal-actions">
       <button class="small" id="resetCancelBtn" type="button">Cancel</button>
       <button class="small confirm-reset" id="resetConfirmBtn" type="button">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
+  <div class="modal-panel about">
+    <h2 class="modal-title" id="aboutModalTitle">About LapTap</h2>
+    <div class="about-copy">
+      <p><strong>LapTap by <a href="https://www.letsrace.cc" target="_blank" rel="noopener noreferrer">LetsRace</a></strong> is a simple lap counter for parents, supporters and coaches at multi-lap cycling, running and multisport events.</p>
+      <h3>Why I built LapTap</h3>
+      <p>I'm the parent of a youth triathlete, and at many races part of my job is helping keep count of laps.</p>
+      <p>It's harder than it sounds. You're watching, cheering and following the race, and it's surprisingly easy to lose count. We've learnt the hard way: on more than one occasion, my child has been disqualified for completing the wrong number of laps.</p>
+      <p>LapTap solves that problem. Each time your athlete passes, tap the screen and LapTap keeps count.</p>
+      <p><strong>See them. Tap. Keep count.</strong></p>
+      <h3>Built for race day</h3>
+      <p>LapTap is designed to need as little attention as possible, with large buttons, a high-contrast outdoor display, clear laps remaining and a simple Undo button.</p>
+      <p>It works for cycle circuits, velodromes, cyclocross, cross-country, running, duathlons, triathlons and other multi-lap events.</p>
+      <h3>How to use LapTap</h3>
+      <ol>
+        <li><strong>Set the laps</strong> for each part of the race.</li>
+        <li><strong>Tap</strong> each time your athlete passes.</li>
+        <li>LapTap <strong>counts down the laps remaining</strong> and changes discipline when needed.</li>
+        <li>Use <strong>Undo</strong> for mistakes and <strong>Reset</strong> for a new race.</li>
+      </ol>
+      <h3>About LetsRace</h3>
+      <p><a href="https://www.letsrace.cc" target="_blank" rel="noopener noreferrer">LetsRace</a> creates simple tools to make grassroots racing easier for riders, parents, supporters and coaches.</p>
+      <p>LapTap follows that philosophy: solve a real race-day problem and keep the solution simple.</p>
+      <p><strong>One less thing to worry about on race day.</strong></p>
+    </div>
+    <div class="modal-actions">
+      <a class="small about-site" href="https://www.letsrace.cc" target="_blank" rel="noopener noreferrer">Visit LetsRace.cc</a>
+      <button class="small" id="aboutCloseBtn" type="button">Close</button>
     </div>
   </div>
 </div>
@@ -1482,6 +1554,12 @@
       laps: 4
     });
     renderPhaseEditors();
+  });
+
+  $("aboutBtn").addEventListener("click", () => openModal("aboutModal"));
+  $("aboutCloseBtn").addEventListener("click", () => closeModal("aboutModal"));
+  $("aboutModal").addEventListener("click", e => {
+    if(e.target === $("aboutModal")) closeModal("aboutModal");
   });
 
   $("setupBtn").addEventListener("click", openSetup);
